@@ -17,6 +17,7 @@ import {
   Check,
   ArrowLeft,
   Loader2,
+  User,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { API_BASE } from "@/lib/api";
@@ -56,13 +57,12 @@ interface Property {
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [property, setProperty] = useState<Property | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [showInspectionModal, setShowInspectionModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
     fetchProperty();
@@ -90,7 +90,6 @@ export default function PropertyDetailPage() {
   };
 
   const checkIfSaved = async () => {
-    // Check if property is in user's saved list
     try {
       const res = await fetch(`${API_BASE}/api/saved/`, {
         headers: {
@@ -111,13 +110,12 @@ export default function PropertyDetailPage() {
 
   const toggleSave = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?redirect=/properties/${params.id}`);
+      router.push(`/login?redirect=/properties/p/${params.id}`);
       return;
     }
 
     try {
       if (isSaved) {
-        // Remove from saved
         await fetch(`${API_BASE}/api/saved/${params.id}/`, {
           method: "DELETE",
           headers: {
@@ -126,7 +124,6 @@ export default function PropertyDetailPage() {
         });
         setIsSaved(false);
       } else {
-        // Add to saved
         await fetch(`${API_BASE}/api/saved/`, {
           method: "POST",
           headers: {
@@ -184,7 +181,6 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Back Button */}
       <div className="container-page pt-6">
         <button
           onClick={() => router.back()}
@@ -195,10 +191,8 @@ export default function PropertyDetailPage() {
         </button>
       </div>
 
-      {/* Image Gallery */}
       <div className="container-page mt-6">
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Main Image */}
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-stone-100">
             {primaryImage?.image ? (
               <Image
@@ -215,12 +209,10 @@ export default function PropertyDetailPage() {
             )}
           </div>
 
-          {/* Thumbnail Grid */}
           <div className="grid grid-cols-2 gap-2">
             {property.images.slice(0, 4).map((img, idx) => (
-              <button
+              <div
                 key={img.id}
-                onClick={() => setSelectedImage(idx)}
                 className="relative aspect-square overflow-hidden rounded-xl bg-stone-100"
               >
                 {img.image ? (
@@ -235,18 +227,15 @@ export default function PropertyDetailPage() {
                     No Image
                   </div>
                 )}
-              </button>
+              </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Property Info */}
-      <div className="container-page mt-8">
+      <div className="container-page mt-8 pb-20">
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Content */}
           <div className="lg:col-span-2">
-            {/* Header */}
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="font-display text-3xl text-ink">{property.title}</h1>
@@ -266,7 +255,6 @@ export default function PropertyDetailPage() {
               </div>
             </div>
 
-            {/* Quick Stats */}
             <div className="mt-6 flex flex-wrap gap-4">
               <div className="flex items-center gap-2 rounded-lg bg-stone-100 px-4 py-2">
                 <Bed className="h-5 w-5 text-stone-600" />
@@ -284,7 +272,6 @@ export default function PropertyDetailPage() {
               )}
             </div>
 
-            {/* Description */}
             <div className="mt-8">
               <h2 className="font-display text-xl text-ink">Description</h2>
               <p className="mt-3 leading-relaxed text-stone-600">
@@ -292,7 +279,6 @@ export default function PropertyDetailPage() {
               </p>
             </div>
 
-            {/* Amenities */}
             {property.amenities_details.length > 0 && (
               <div className="mt-8">
                 <h2 className="font-display text-xl text-ink">Amenities</h2>
@@ -310,7 +296,6 @@ export default function PropertyDetailPage() {
               </div>
             )}
 
-            {/* Property Info */}
             <div className="mt-8">
               <h2 className="font-display text-xl text-ink">Property Information</h2>
               <div className="mt-4 space-y-2 text-sm">
@@ -346,9 +331,7 @@ export default function PropertyDetailPage() {
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Agent Card */}
             {agent && (
               <div className="rounded-2xl bg-white p-6 shadow-card">
                 <h3 className="font-display text-lg text-ink">Contact Agent</h3>
@@ -393,7 +376,6 @@ export default function PropertyDetailPage() {
                   </a>
                 </div>
 
-                {/* Book Inspection Button */}
                 <button
                   onClick={() => setShowInspectionModal(true)}
                   className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-gold-dark px-4 py-3 text-sm font-medium text-white transition hover:bg-gold"
@@ -404,7 +386,6 @@ export default function PropertyDetailPage() {
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="rounded-2xl bg-white p-6 shadow-card">
               <div className="flex gap-3">
                 <button
@@ -437,7 +418,6 @@ export default function PropertyDetailPage() {
               </div>
             </div>
 
-            {/* Safety Tips */}
             <div className="rounded-2xl bg-stone-50 p-6">
               <h4 className="font-medium text-ink">Safety Tips</h4>
               <ul className="mt-3 space-y-2 text-sm text-stone-600">
@@ -459,7 +439,6 @@ export default function PropertyDetailPage() {
         </div>
       </div>
 
-      {/* Inspection Modal */}
       {showInspectionModal && (
         <InspectionModal
           propertyId={property.id}
@@ -470,7 +449,6 @@ export default function PropertyDetailPage() {
   );
 }
 
-// Inspection Modal Component
 function InspectionModal({
   propertyId,
   onClose,

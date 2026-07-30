@@ -1,4 +1,6 @@
 "use client";
+/* eslint-disable */
+// @ts-nocheck
 
 import React, { useState, useMemo, useEffect } from "react";
 

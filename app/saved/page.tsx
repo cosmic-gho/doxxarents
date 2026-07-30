@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Heart, ArrowLeft, Trash2, Loader2 } from "lucide-react";
+import { Heart, ArrowLeft, Trash2, Loader2, MapPin, Bed, Bath } from "lucide-react";
 import { useAuth, ProtectedRoute } from "@/lib/auth";
 import { API_BASE, Property, formatPrice } from "@/lib/api";
 import Image from "next/image";
@@ -146,7 +146,7 @@ function SavedPropertyCard({
   return (
     <div className="group relative overflow-hidden rounded-2xl bg-white shadow-card transition hover:shadow-lg">
       {/* Image */}
-      <Link href={`/properties/${property.id}`} className="relative block aspect-[4/3]">
+      <Link href={`/properties/p/${property.id}`} className="relative block aspect-[4/3]">
         {primaryImage?.image ? (
           <Image
             src={primaryImage.image}

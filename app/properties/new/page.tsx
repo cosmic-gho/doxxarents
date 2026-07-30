@@ -14,6 +14,7 @@ import {
   DollarSign,
   Home,
   Loader2,
+  Check,
 } from "lucide-react";
 import { useAuth, ProtectedRoute } from "@/lib/auth";
 import { API_BASE } from "@/lib/api";
@@ -155,7 +156,7 @@ function NewPropertyForm() {
         }
       }
 
-      router.push(`/properties/${property.id}`);
+      router.push(`/properties/p/${property.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create property");
     } finally {

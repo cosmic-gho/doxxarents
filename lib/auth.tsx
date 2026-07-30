@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -48,20 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const initAuth = async () => {
-      const tokens = getTokens();
-      if (tokens?.access) {
-        const valid = await refreshToken();
-        if (valid) {
-          await fetchProfile();
-        }
-      }
-      setIsLoading(false);
-    };
-    initAuth();
-  }, []);
-
   const getTokens = (): AuthTokens | null => {
     if (typeof window === "undefined") return null;
     const access = localStorage.getItem("access_token");
@@ -80,7 +68,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("refresh_token");
   };
 
-  const fetchProfile = async (): Promise<boolean> => {
+  useEffect(() => {
+    (async () => {
+      const tokens = getTokens();
+      if (tokens?.access) {
+        const ok = await refreshTokenInternal();
+        if (ok) {
+          await fetchProfileInternal();
+        }
+      }
+      setIsLoading(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchProfileInternal = async (): Promise<boolean> => {
     try {
       const tokens = getTokens();
       if (!tokens) return false;
@@ -114,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await res.json();
     setTokens({ access: data.access, refresh: data.refresh });
-    await fetchProfile();
+    await fetchProfileInternal();
   };
 
   const register = async (data: RegisterData) => {
@@ -137,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const refreshToken = async (): Promise<boolean> => {
+  const refreshTokenInternal = async (): Promise<boolean> => {
     const tokens = getTokens();
     if (!tokens?.refresh) return false;
 
@@ -159,69 +161,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated: !!user,
-        login,
-        register,
-        logout,
-        refreshToken,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const ctxValue: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    login,
+    register,
+    logout,
+    refreshToken: refreshTokenInternal,
+  };
+
+  return React.createElement(AuthContext.Provider, { value: ctxValue }, children);
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
+  const ctx = useContext(AuthContext);
+  if (ctx === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context;
+  return ctx;
 }
 
-// Protected route wrapper
 export function ProtectedRoute({
   children,
   requireAgent = false,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   requireAgent?: boolean;
 }) {
   const { user, isLoading, isAuthenticated } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-300 border-t-ink" />
-      </div>
+    return React.createElement(
+      "div",
+      { className: "flex h-screen items-center justify-center" },
+      React.createElement("div", {
+        className:
+          "h-8 w-8 animate-spin rounded-full border-2 border-stone-300 border-t-ink",
+      })
     );
   }
 
   if (!isAuthenticated) {
     if (typeof window !== "undefined") {
-      window.location.href = "/login?redirect=" + encodeURIComponent(window.location.pathname);
+      window.location.href =
+        "/login?redirect=" + encodeURIComponent(window.location.pathname);
     }
     return null;
   }
 
   if (requireAgent && user?.role !== "AGENT") {
-    return (
-      <div className="container-page py-20 text-center">
-        <h1 className="font-display text-2xl text-ink">Agent Access Required</h1>
-        <p className="mt-4 text-stone-600">
-          This page is only available to verified agents.
-        </p>
-        <a href="/" className="mt-6 inline-block text-gold-dark hover:underline">
-          Return Home
-        </a>
-      </div>
+    return React.createElement(
+      "div",
+      { className: "container-page py-20 text-center" },
+      React.createElement(
+        "h1",
+        { className: "font-display text-2xl text-ink" },
+        "Agent Access Required"
+      ),
+      React.createElement(
+        "p",
+        { className: "mt-4 text-stone-600" },
+        "This page is only available to verified agents."
+      ),
+      React.createElement(
+        "a",
+        {
+          href: "/",
+          className: "mt-6 inline-block text-gold-dark hover:underline",
+        },
+        "Return Home"
+      )
     );
   }
 
-  return <>{children}</>;
+  return React.createElement(React.Fragment, null, children);
 }

@@ -1,0 +1,8 @@
+Initial commit of DOXXARentals frontend
+
+- Next.js 14 + TypeScript + Tailwind CSS + Framer Motion
+- App Router with static and dynamic routes
+- District pages, property listings, category browsing
+- API integration layer (lib/api.ts) with Django backend
+- Static fallback for districts/properties when API unavailable
+- Components: DistrictCard, PropertyCard, TrustBadge, Navbar, Footer

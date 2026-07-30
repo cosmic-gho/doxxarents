@@ -304,3 +304,6 @@ export { getAgentsForDistrict, agents } from "./agents";
 export { getNearby } from "./nearby";
 export type { Agent } from "./agents";
 export type { NearbyPlace } from "./nearby";
+
+// Re-export Property type
+export type { Property } from "./properties";

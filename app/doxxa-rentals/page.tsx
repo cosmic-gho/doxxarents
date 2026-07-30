@@ -222,7 +222,7 @@ const PROPERTY_CATEGORIES = [
 const TYPES = PROPERTY_CATEGORIES.map((c) => c.label);
 const STATUSES = ["Available", "Reserved", "Rented", "Pending Verification", "Coming Soon", "New Listing", "Featured Listing"];
 
-function seededRandom(seed) {
+function seededRandom(seed: number) {
   let s = seed % 2147483647;
   if (s <= 0) s += 2147483646;
   return function () {

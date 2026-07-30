@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, Heart, User, Plus, LogOut } from "lucide-react";
 import Logo from "./Logo";
+import { useAuth } from "@/lib/auth";
 
 const LINKS = [
   { href: "/districts", label: "Districts" },
@@ -14,6 +15,8 @@ const LINKS = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-stone-200 bg-paper/90 backdrop-blur">

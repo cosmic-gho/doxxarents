@@ -1,5 +1,14 @@
 "use client";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Security Settings — DOXXARentals",
+  description: "Change your password and manage security settings for your DOXXARentals account.",
+};
+
+
+
 import { useState } from "react";
 import { API_BASE } from "@/lib/api";
 import { Loader2, Check } from "lucide-react";
@@ -16,7 +25,7 @@ export default function SecurityPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.new_password !== formData.confirm_password) {
       setError("New passwords do not match.");
       return;
@@ -47,14 +56,14 @@ export default function SecurityPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        
+
         // Handle specific field errors from Django
         if (data.old_password) {
           throw new Error(`Old Password: ${data.old_password[0]}`);
         } else if (data.new_password) {
           throw new Error(`New Password: ${data.new_password[0]}`);
         }
-        
+
         throw new Error(data.detail || "Failed to update password");
       }
 
@@ -76,13 +85,13 @@ export default function SecurityPage() {
 
       <div className="rounded-xl border border-stone-200 bg-white p-6 md:p-8">
         <h2 className="text-lg font-medium text-ink mb-6">Change Password</h2>
-        
+
         {error && (
           <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-600">
             {error}
           </div>
         )}
-        
+
         {success && (
           <div className="mb-6 flex items-center gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-600">
             <Check className="h-4 w-4" />

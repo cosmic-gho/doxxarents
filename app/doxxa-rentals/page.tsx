@@ -2,6 +2,20 @@
 /* eslint-disable */
 "use client";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Doxxa Rentals — Explore Abuja Districts",
+  description: "Explore an interactive 3D overview of rental districts in Abuja with DOXXARentals. Find your next home in Katampe, Maitama, Wuse, Jabi and more.",
+  openGraph: {
+    title: "Explore Abuja Districts — DOXXARentals",
+    description: "Interactive 3D district explorer for rental properties in Abuja, Nigeria.",
+    type: "website",
+  },
+};
+
+
+
 import React, { useState, useMemo, useEffect } from "react";
 
 // Auto-generated image asset map
@@ -835,8 +849,8 @@ function FilterBar({ filters, setFilters, sort, setSort, resultCount }) {
     <button
       onClick={() => toggle(key)}
       className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${filters[key]
-          ? "bg-amber-400 border-amber-400 text-neutral-900 font-medium"
-          : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700"
+        ? "bg-amber-400 border-amber-400 text-neutral-900 font-medium"
+        : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700"
         }`}
     >
       {label}

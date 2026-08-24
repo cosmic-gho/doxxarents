@@ -3,6 +3,29 @@ import Link from "next/link";
 import { ShieldCheck, MapPin, Search, ArrowRight } from "lucide-react";
 import { fetchDistricts, fetchCategories, featuredDistrictSlugs } from "@/lib/api";
 import DistrictCard from "@/components/DistrictCard";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "DOXXARentals — Find Your Next Home in Abuja Without the Stress",
+  description:
+    "Browse verified rental listings across every district in Abuja, Nigeria. Apartment types, verified agents, and easy inspection booking — all in one place.",
+  keywords: ["Abuja rentals", "Nigeria apartments", "rent in Abuja", "verified listings", "DOXXARentals"],
+  openGraph: {
+    title: "DOXXARentals — Abuja's Most Trusted Rental Platform",
+    description: "Verified listings, verified agents, and every district in Abuja on one trustworthy platform.",
+    url: "https://doxxarentals.com",
+    siteName: "DOXXARentals",
+    locale: "en_NG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DOXXARentals — Find Your Next Home in Abuja",
+    description: "Verified listings and agents across every district in Abuja, Nigeria.",
+  },
+};
+
+
 
 export const dynamic = "force-dynamic";
 

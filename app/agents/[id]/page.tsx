@@ -5,8 +5,27 @@ import PropertyCard from "@/components/PropertyCard";
 import TrustBadge from "@/components/TrustBadge";
 import Image from "next/image";
 import { Phone, Mail, MapPin, ShieldCheck, ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const agent = await fetchAgentProfile(params.id);
+    if (!agent) return { title: "Agent Profile — DOXXARentals" };
+    const name = agent.first_name && agent.last_name
+      ? `${agent.first_name} ${agent.last_name}`
+      : agent.username;
+    return {
+      title: `${name} — DOXXARentals Agent`,
+      description: `View ${name}'s verified listings and contact details on DOXXARentals. Browse ${agent.active_listings_count ?? "approved"} rental properties in Abuja.`,
+    };
+  } catch {
+    return { title: "Agent Profile — DOXXARentals" };
+  }
+}
+
+
 
 export default async function AgentProfilePage({ params }: { params: { id: string } }) {
   const agent = await fetchAgentProfile(params.id);

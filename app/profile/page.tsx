@@ -1,5 +1,14 @@
 "use client";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Profile Settings — DOXXARentals",
+  description: "Manage your DOXXARentals account details, contact information and preferences.",
+};
+
+
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { API_BASE } from "@/lib/api";
@@ -72,7 +81,7 @@ export default function ProfilePage() {
             {error}
           </div>
         )}
-        
+
         {success && (
           <div className="mb-6 flex items-center gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-600">
             <Check className="h-4 w-4" />

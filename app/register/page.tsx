@@ -1,5 +1,14 @@
 "use client";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Create Account — DOXXARentals",
+  description: "Join DOXXARentals as a renter or agent. Create your account to start browsing verified listings or list your properties in Abuja, Nigeria.",
+};
+
+
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -95,11 +104,10 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: "USER" })}
-                  className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition ${
-                    formData.role === "USER"
+                  className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition ${formData.role === "USER"
                       ? "border-ink bg-stone-50"
                       : "border-stone-200 hover:border-stone-300"
-                  }`}
+                    }`}
                 >
                   <UserCircle className="h-6 w-6 text-stone-600" />
                   <span className="text-sm font-medium text-stone-700">Renter</span>
@@ -107,11 +115,10 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: "AGENT" })}
-                  className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition ${
-                    formData.role === "AGENT"
+                  className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition ${formData.role === "AGENT"
                       ? "border-ink bg-stone-50"
                       : "border-stone-200 hover:border-stone-300"
-                  }`}
+                    }`}
                 >
                   <Building2 className="h-6 w-6 text-stone-600" />
                   <span className="text-sm font-medium text-stone-700">Agent</span>

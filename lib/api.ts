@@ -51,6 +51,8 @@ export type BackendAgent = {
   email: string;
   phone_number: string | null;
   profile_picture: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   is_verified?: boolean;
   active_listings_count?: number;
 };

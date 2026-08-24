@@ -1,17 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
   Upload,
   X,
-  Plus,
   Bed,
   Bath,
   MapPin,
-  DollarSign,
   Home,
   Loader2,
   Check,
@@ -19,29 +17,23 @@ import {
 import { useAuth, ProtectedRoute } from "@/lib/auth";
 import { API_BASE } from "@/lib/api";
 
-const APARTMENT_TYPES = [
-  { value: "STUDIO", label: "Studio Apartment" },
-  { value: "1_BEDROOM", label: "1 Bedroom" },
-  { value: "2_BEDROOM", label: "2 Bedroom" },
-  { value: "3_BEDROOM", label: "3 Bedroom" },
-  { value: "4_BEDROOM", label: "4 Bedroom" },
-  { value: "DUPLEX", label: "Duplex" },
-  { value: "VILLA", label: "Villa" },
-];
+interface PropertyCategory {
+  id: number;
+  slug: string;
+  name: string;
+  icon: string;
+}
 
-const AMENITIES = [
-  "Air Conditioning",
-  "Swimming Pool",
-  "Gym",
-  "Parking",
-  "Security",
-  "Generator",
-  "Furnished",
-  "Water Heater",
-  "WiFi",
-  "Balcony",
-  "Garden",
-];
+interface Amenity {
+  id: number;
+  name: string;
+}
+
+interface District {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 export default function NewPropertyPage() {
   return (
@@ -58,17 +50,38 @@ function NewPropertyForm() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
 
+  const [categories, setCategories] = useState<PropertyCategory[]>([]);
+  const [amenities, setAmenities] = useState<Amenity[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/categories/`)
+      .then((r) => r.json())
+      .then(setCategories)
+      .catch(() => { });
+    fetch(`${API_BASE}/api/amenities/`)
+      .then((r) => r.json())
+      .then((data) => setAmenities(data.results ?? data))
+      .catch(() => { });
+    fetch(`${API_BASE}/api/districts/`)
+      .then((r) => r.json())
+      .then((data) => setDistricts(Array.isArray(data) ? data : data.results ?? []))
+      .catch(() => { });
+  }, []);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    monthly_rent: "",
-    apartment_type: "",
+    annual_rent: "",
+    category: "" as unknown as number,
     bedrooms: "",
     bathrooms: "",
-    square_feet: "",
     address: "",
     district: "",
-    amenities: [] as string[],
+    latitude: "",
+    longitude: "",
+    tour_url: "",
+    selectedAmenities: [] as number[],
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -79,8 +92,6 @@ function NewPropertyForm() {
     if (files) {
       const newImages = Array.from(files);
       setImages([...images, ...newImages]);
-
-      // Create previews
       newImages.forEach((file) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -96,12 +107,12 @@ function NewPropertyForm() {
     setImagePreviews(imagePreviews.filter((_, i) => i !== index));
   };
 
-  const toggleAmenity = (amenity: string) => {
+  const toggleAmenity = (id: number) => {
     setFormData((prev) => ({
       ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter((a) => a !== amenity)
-        : [...prev.amenities, amenity],
+      selectedAmenities: prev.selectedAmenities.includes(id)
+        ? prev.selectedAmenities.filter((a) => a !== id)
+        : [...prev.selectedAmenities, id],
     }));
   };
 
@@ -111,7 +122,6 @@ function NewPropertyForm() {
     setIsSubmitting(true);
 
     try {
-      // Create property
       const propertyRes = await fetch(`${API_BASE}/api/properties/`, {
         method: "POST",
         headers: {
@@ -119,16 +129,18 @@ function NewPropertyForm() {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
         body: JSON.stringify({
-          ...formData,
-          monthly_rent: parseFloat(formData.monthly_rent),
+          title: formData.title,
+          description: formData.description,
+          annual_rent: parseFloat(formData.annual_rent),
+          category: Number(formData.category),
           bedrooms: parseInt(formData.bedrooms),
           bathrooms: parseInt(formData.bathrooms),
-          square_feet: formData.square_feet
-            ? parseInt(formData.square_feet)
-            : undefined,
-          district: formData.district
-            ? parseInt(formData.district)
-            : undefined,
+          address: formData.address,
+          district: formData.district ? parseInt(formData.district) : undefined,
+          latitude: formData.latitude || undefined,
+          longitude: formData.longitude || undefined,
+          tour_url: formData.tour_url || undefined,
+          amenities: formData.selectedAmenities,
         }),
       });
 
@@ -139,19 +151,17 @@ function NewPropertyForm() {
 
       const property = await propertyRes.json();
 
-      // Upload images
       if (images.length > 0) {
         for (let i = 0; i < images.length; i++) {
-          const formData = new FormData();
-          formData.append("image", images[i]);
-          formData.append("is_primary", i === 0 ? "true" : "false");
-
+          const fd = new FormData();
+          fd.append("image", images[i]);
+          fd.append("is_primary", i === 0 ? "true" : "false");
           await fetch(`${API_BASE}/api/properties/${property.id}/images/`, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
             },
-            body: formData,
+            body: fd,
           });
         }
       }
@@ -193,14 +203,12 @@ function NewPropertyForm() {
             {["Basic Info", "Details", "Photos", "Review"].map((s, i) => (
               <div
                 key={s}
-                className={`flex items-center gap-2 ${
-                  i + 1 <= step ? "text-ink" : "text-stone-400"
-                }`}
+                className={`flex items-center gap-2 ${i + 1 <= step ? "text-ink" : "text-stone-400"
+                  }`}
               >
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    i + 1 <= step ? "bg-ink text-white" : "bg-stone-200"
-                  }`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full ${i + 1 <= step ? "bg-ink text-white" : "bg-stone-200"
+                    }`}
                 >
                   {i + 1}
                 </div>
@@ -240,20 +248,20 @@ function NewPropertyForm() {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-stone-700">
-                  Property Type *
+                  Property Category *
                 </label>
                 <select
-                  value={formData.apartment_type}
+                  value={formData.category}
                   onChange={(e) =>
-                    setFormData({ ...formData, apartment_type: e.target.value })
+                    setFormData({ ...formData, category: Number(e.target.value) })
                   }
                   className="w-full rounded-lg border border-stone-200 px-4 py-2.5 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
                   required
                 >
-                  <option value="">Select property type</option>
-                  {APARTMENT_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
+                  <option value="">Select property category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon} {cat.name}
                     </option>
                   ))}
                 </select>
@@ -321,10 +329,10 @@ function NewPropertyForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-stone-700">
-                    Monthly Rent (₦) *
+                    Annual Rent (₦) *
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500">
@@ -332,9 +340,9 @@ function NewPropertyForm() {
                     </span>
                     <input
                       type="number"
-                      value={formData.monthly_rent}
+                      value={formData.annual_rent}
                       onChange={(e) =>
-                        setFormData({ ...formData, monthly_rent: e.target.value })
+                        setFormData({ ...formData, annual_rent: e.target.value })
                       }
                       className="w-full rounded-lg border border-stone-200 py-2.5 pl-8 pr-4 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
                       min="0"
@@ -342,24 +350,24 @@ function NewPropertyForm() {
                     />
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
-                    Square Feet
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={formData.square_feet}
-                      onChange={(e) =>
-                        setFormData({ ...formData, square_feet: e.target.value })
-                      }
-                      className="w-full rounded-lg border border-stone-200 px-4 py-2.5 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
-                      min="0"
-                      placeholder="e.g., 1200"
-                    />
-                  </div>
-                </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  District
+                </label>
+                <select
+                  value={formData.district}
+                  onChange={(e) =>
+                    setFormData({ ...formData, district: e.target.value })
+                  }
+                  className="w-full rounded-lg border border-stone-200 px-4 py-2.5 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
+                >
+                  <option value="">Select a district (optional)</option>
+                  {districts.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -381,29 +389,79 @@ function NewPropertyForm() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    Latitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) =>
+                      setFormData({ ...formData, latitude: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-stone-200 px-4 py-2.5 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
+                    placeholder="e.g., 9.0765"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                    Longitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) =>
+                      setFormData({ ...formData, longitude: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-stone-200 px-4 py-2.5 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
+                    placeholder="e.g., 7.3986"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-stone-700">
+                  Virtual Tour 3D File URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={formData.tour_url}
+                  onChange={(e) =>
+                    setFormData({ ...formData, tour_url: e.target.value })
+                  }
+                  className="w-full rounded-lg border border-stone-200 px-4 py-2.5 focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
+                  placeholder="e.g., https://example.com/models/apartment.glb"
+                />
+              </div>
+
               {/* Amenities */}
               <div>
                 <label className="mb-3 block text-sm font-medium text-stone-700">
                   Amenities
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {AMENITIES.map((amenity) => (
+                  {amenities.map((amenity) => (
                     <button
-                      key={amenity}
+                      key={amenity.id}
                       type="button"
-                      onClick={() => toggleAmenity(amenity)}
-                      className={`rounded-full px-4 py-2 text-sm transition ${
-                        formData.amenities.includes(amenity)
-                          ? "bg-ink text-white"
-                          : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-                      }`}
+                      onClick={() => toggleAmenity(amenity.id)}
+                      className={`rounded-full px-4 py-2 text-sm transition ${formData.selectedAmenities.includes(amenity.id)
+                        ? "bg-ink text-white"
+                        : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                        }`}
                     >
-                      {formData.amenities.includes(amenity) && (
+                      {formData.selectedAmenities.includes(amenity.id) && (
                         <Check className="mr-1 inline h-3 w-3" />
                       )}
-                      {amenity}
+                      {amenity.name}
                     </button>
                   ))}
+                  {amenities.length === 0 && (
+                    <p className="text-sm text-stone-400">Loading amenities...</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -474,16 +532,15 @@ function NewPropertyForm() {
                     <dd className="font-medium text-ink">{formData.title}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-stone-500">Type</dt>
+                    <dt className="text-stone-500">Category</dt>
                     <dd className="font-medium text-ink">
-                      {APARTMENT_TYPES.find((t) => t.value === formData.apartment_type)
-                        ?.label || formData.apartment_type}
+                      {categories.find((c) => c.id === Number(formData.category))?.name || "—"}
                     </dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-stone-500">Price</dt>
                     <dd className="font-medium text-ink">
-                      ₦{parseInt(formData.monthly_rent).toLocaleString()}/month
+                      ₦{parseInt(formData.annual_rent).toLocaleString()}/year
                     </dd>
                   </div>
                   <div className="flex justify-between">

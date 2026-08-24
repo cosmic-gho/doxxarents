@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const tokens = getTokens();
       if (!tokens) return false;
 
-      const res = await fetch(`${API_BASE}/api/users/profile/`, {
+      const res = await fetch(`${API_BASE}/api/auth/profile/`, {
         headers: { Authorization: `Bearer ${tokens.access}` },
       });
 
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const res = await fetch(`${API_BASE}/api/users/login/`, {
+    const res = await fetch(`${API_BASE}/api/auth/login/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (data: RegisterData) => {
-    const res = await fetch(`${API_BASE}/api/users/register/`, {
+    const res = await fetch(`${API_BASE}/api/auth/register/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -144,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!tokens?.refresh) return false;
 
     try {
-      const res = await fetch(`${API_BASE}/api/users/token/refresh/`, {
+      const res = await fetch(`${API_BASE}/api/auth/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh: tokens.refresh }),

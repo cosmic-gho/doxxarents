@@ -7,7 +7,7 @@ import { Property, formatPrice } from "@/lib/properties";
 export default function PropertyCard({ property }: { property: Property }) {
   return (
     <Link
-      href={`/properties/${property.category.slug}?district=${property.district.slug}`}
+      href={`/properties/p/${property.id}`}
       className="group block overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-lg"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100">

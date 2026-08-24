@@ -21,12 +21,14 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { API_BASE } from "@/lib/api";
+import { PropertyMap } from "@/components/PropertyMap";
+import { VirtualTourViewer } from "@/components/VirtualTourViewer";
 
 interface Property {
   id: number;
   title: string;
   description: string;
-  monthly_rent: number;
+  annual_rent: number;
   bedrooms: number;
   bathrooms: number;
   square_feet?: number;
@@ -35,7 +37,7 @@ interface Property {
   longitude?: number;
   is_verified: boolean;
   status: string;
-  apartment_type: string;
+  category_details?: { id: number; name: string; icon: string } | null;
   district_details?: {
     id: number;
     name: string;
@@ -52,6 +54,9 @@ interface Property {
   images: { id: number; image: string | null; is_primary: boolean }[];
   views_count: number;
   date_posted: string;
+  tour_url?: string | null;
+  has_unlocked_virtual_tour?: boolean;
+  has_virtual_tour?: boolean;
 }
 
 export default function PropertyDetailPage() {
@@ -140,11 +145,11 @@ export default function PropertyDetailPage() {
   };
 
   const formatPrice = (price: number) => {
-    return "₦" + price.toLocaleString("en-NG");
+    return "₦" + price.toLocaleString("en-GB");
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-NG", {
+    return new Date(date).toLocaleDateString("en-GB", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -231,6 +236,19 @@ export default function PropertyDetailPage() {
             ))}
           </div>
         </div>
+
+        {/* Virtual Tour Section */}
+        {property.has_virtual_tour && (
+          <div className="mt-12">
+            <h2 className="font-display text-2xl text-ink mb-6">3D Virtual Inspection</h2>
+            <VirtualTourViewer
+              propertyId={property.id}
+              hasUnlocked={property.has_unlocked_virtual_tour}
+              tourUrl={property.tour_url}
+              onUnlockSuccess={fetchProperty}
+            />
+          </div>
+        )}
       </div>
 
       <div className="container-page mt-8 pb-20">
@@ -249,9 +267,9 @@ export default function PropertyDetailPage() {
               </div>
               <div className="text-right">
                 <p className="font-display text-3xl text-ink">
-                  {formatPrice(property.monthly_rent)}
+                  {formatPrice(property.annual_rent)}
                 </p>
-                <p className="text-sm text-stone-500">/ month</p>
+                <p className="text-sm text-stone-500">/ year</p>
               </div>
             </div>
 
@@ -302,7 +320,7 @@ export default function PropertyDetailPage() {
                 <div className="flex justify-between border-b border-stone-100 py-2">
                   <span className="text-stone-500">Property Type</span>
                   <span className="font-medium text-stone-700">
-                    {property.apartment_type.replace(/_/g, " ")}
+                    {property.category_details?.name ?? "—"}
                   </span>
                 </div>
                 <div className="flex justify-between border-b border-stone-100 py-2">
@@ -328,6 +346,16 @@ export default function PropertyDetailPage() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Map Section */}
+            <div className="mt-12">
+              <h2 className="font-display text-xl text-ink mb-4">Location Map</h2>
+              <PropertyMap
+                latitude={property.latitude ?? null}
+                longitude={property.longitude ?? null}
+                address={property.address}
+              />
             </div>
           </div>
 
@@ -390,11 +418,10 @@ export default function PropertyDetailPage() {
               <div className="flex gap-3">
                 <button
                   onClick={toggleSave}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg border-2 px-4 py-3 transition ${
-                    isSaved
-                      ? "border-red-500 bg-red-50 text-red-600"
-                      : "border-stone-200 hover:border-stone-300"
-                  }`}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg border-2 px-4 py-3 transition ${isSaved
+                    ? "border-red-500 bg-red-50 text-red-600"
+                    : "border-stone-200 hover:border-stone-300"
+                    }`}
                 >
                   <Heart className={`h-5 w-5 ${isSaved ? "fill-current" : ""}`} />
                   {isSaved ? "Saved" : "Save"}

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { AuthProvider } from "@/lib/auth";
 
 const display = Fraunces({
@@ -22,20 +20,23 @@ export const metadata: Metadata = {
   description:
     "A technology-driven rental platform for Abuja, Nigeria. Verified listings, verified agents, and a rental experience built for trust.",
   icons: {
-    // Placeholder favicon — replace public/images/logo/favicon.png with a
-    // proper 32x32/512x512 export when one is available.
     icon: "/images/logo/favicon.png",
   },
 };
 
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`}>
-      <body className="bg-paper text-stone-800 font-sans antialiased">
+      <body>
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <div className="flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
         </AuthProvider>
       </body>
     </html>

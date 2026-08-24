@@ -34,11 +34,13 @@ export type BackendDistrict = {
 };
 
 export type BackendCategory = {
+  id: number;
   slug: string;
   name: string;
   description: string;
+  icon: string;
+  is_short_let: boolean;
   listing_count: number;
-  apartment_types: string[];
 };
 
 export type BackendPropertyImage = { id: number; image: string | null; is_primary: boolean };
@@ -49,6 +51,8 @@ export type BackendAgent = {
   email: string;
   phone_number: string | null;
   profile_picture: string | null;
+  is_verified?: boolean;
+  active_listings_count?: number;
 };
 
 export type BackendProperty = {
@@ -56,22 +60,36 @@ export type BackendProperty = {
   title: string;
   description: string;
   agent: BackendAgent | null;
-  monthly_rent: string | number;
-  apartment_type: string;
+  annual_rent: string | number;
+  service_charge: string | number | null;
+  category: number | null;
+  category_details: { id: number; slug: string; name: string; icon: string; is_short_let: boolean } | null;
   bedrooms: number;
   bathrooms: number;
+  parking: number;
+  furnished: boolean;
+  serviced: boolean;
+  pet_friendly: boolean;
   district: number | null;
   district_details: BackendDistrict | null;
   address: string;
   latitude: string | number | null;
   longitude: string | number | null;
   is_verified: boolean;
-  status: "PENDING" | "APPROVED" | "REJECTED" | "RENTED";
+  is_featured: boolean;
+  is_premium: boolean;
+  /** Availability: AVAILABLE | RESERVED | RENTED | COMING_SOON */
+  status: "AVAILABLE" | "RESERVED" | "RENTED" | "COMING_SOON";
+  /** Moderation: PENDING | APPROVED | REJECTED */
+  moderation_status: "PENDING" | "APPROVED" | "REJECTED";
   amenities: number[];
   amenities_details: { id: number; name: string }[];
   date_posted: string;
   views_count?: number;
   images: BackendPropertyImage[];
+  tour_url?: string;
+  has_virtual_tour?: boolean;
+  has_unlocked_virtual_tour?: boolean;
 };
 
 export const API_PATHS = {
@@ -84,6 +102,8 @@ export const API_PATHS = {
   inspections: "/api/inspections/",
   saved: "/api/saved/",
   analytics: "/api/analytics/",
+  agents: "/api/auth/agents/",
+  agent: (id: number) => `/api/auth/agent/${id}/`,
 };
 
 const DEFAULT_DISTRICT_IMAGE = "/images/districts/default-abuja.jpg";
@@ -116,32 +136,16 @@ function feCategoryFromBackend(bc: BackendCategory | null | undefined, slug: str
   return staticMatch ?? { slug, name: slug.replace(/-/g, " "), description: "" };
 }
 
-function apartmentTypeToCategorySlug(apartmentType: string): string {
-  switch (apartmentType) {
-    case "STUDIO":
-      return "studio-apartment";
-    case "1_BEDROOM":
-      return "1-bedroom";
-    case "2_BEDROOM":
-      return "2-bedroom";
-    case "3_BEDROOM":
-      return "3-bedroom";
-    case "4_BEDROOM":
-      return "4-bedroom";
-    case "DUPLEX":
-      return "duplex";
-    case "VILLA":
-      return "detached-house";
-    default:
-      return "2-bedroom";
-  }
-}
 
-function backendStatusToFE(status: BackendProperty["status"], isVerified: boolean): PropertyStatus {
+function backendStatusToFE(
+  status: BackendProperty["status"],
+  moderationStatus: BackendProperty["moderation_status"]
+): PropertyStatus {
   if (status === "RENTED") return "rented";
-  if (status === "REJECTED") return "under-review";
-  if (status === "PENDING") return "pending-verification";
-  if (!isVerified) return "pending-verification";
+  if (moderationStatus === "REJECTED") return "under-review";
+  if (moderationStatus === "PENDING") return "pending-verification";
+  // APPROVED + available
+  if (status === "RESERVED") return "reserved" as PropertyStatus;
   return "available";
 }
 
@@ -160,7 +164,8 @@ export function adaptBackendProperty(
   bp: BackendProperty,
   opts?: { districtsBySlug?: Record<string, FEDistrict>; categoriesBySlug?: Record<string, PropertyCategory> }
 ): FEProperty {
-  const categorySlug = apartmentTypeToCategorySlug(bp.apartment_type);
+  // Use the category slug returned directly from the backend
+  const categorySlug = bp.category_details?.slug ?? "2-bedroom";
   const category: PropertyCategory =
     opts?.categoriesBySlug?.[categorySlug] ?? getStaticCategory(categorySlug) ?? {
       slug: categorySlug,
@@ -192,7 +197,7 @@ export function adaptBackendProperty(
     }
   })();
 
-  const price = typeof bp.monthly_rent === "number" ? bp.monthly_rent : Number(bp.monthly_rent) || 0;
+  const price = typeof bp.annual_rent === "number" ? bp.annual_rent : Number(bp.annual_rent) || 0;
 
   return {
     id: String(bp.id),
@@ -202,12 +207,15 @@ export function adaptBackendProperty(
     price,
     bedrooms: bp.bedrooms ?? 0,
     bathrooms: bp.bathrooms ?? 0,
-    parking: 0,
-    furnished: false,
-    serviced: false,
-    status: backendStatusToFE(bp.status, bp.is_verified),
+    parking: bp.parking ?? 0,
+    furnished: bp.furnished ?? false,
+    serviced: bp.serviced ?? false,
+    status: backendStatusToFE(bp.status, bp.moderation_status),
     badges: computeBadges(bp, daysOld),
     image,
+    address: bp.address ?? "",
+    latitude: bp.latitude ?? null,
+    longitude: bp.longitude ?? null,
   };
 }
 
@@ -244,12 +252,13 @@ export type PropertyQuery = {
   maxPrice?: number;
   bedrooms?: number;
   bathrooms?: number;
-  apartmentType?: string;
   status?: string;
+  moderationStatus?: string;
   isVerified?: boolean;
   search?: string;
   ordering?: string;
   pageSize?: number;
+  agentId?: number;
 };
 
 export async function fetchProperties(query: PropertyQuery = {}): Promise<FEProperty[]> {
@@ -260,12 +269,13 @@ export async function fetchProperties(query: PropertyQuery = {}): Promise<FEProp
   if (query.maxPrice != null) params.set("max_price", String(query.maxPrice));
   if (query.bedrooms != null) params.set("bedrooms", String(query.bedrooms));
   if (query.bathrooms != null) params.set("bathrooms", String(query.bathrooms));
-  if (query.apartmentType) params.set("apartment_type", query.apartmentType);
   if (query.status) params.set("status", query.status);
+  if (query.moderationStatus) params.set("moderation_status", query.moderationStatus);
   if (query.isVerified != null) params.set("is_verified", query.isVerified ? "true" : "false");
   if (query.search) params.set("search", query.search);
   if (query.ordering) params.set("ordering", query.ordering);
   if (query.pageSize != null) params.set("page_size", String(query.pageSize));
+  if (query.agentId != null) params.set("agent_id", String(query.agentId));
 
   const qs = params.toString();
   const url = `${API_PATHS.properties}${qs ? `?${qs}` : ""}`;
@@ -295,6 +305,15 @@ export async function fetchPropertyById(id: number | string): Promise<FEProperty
   const data = await safeFetch<BackendProperty>(API_PATHS.property(Number(id)));
   if (!data) return null;
   return adaptBackendProperty(data);
+}
+
+export async function fetchAgents(): Promise<BackendAgent[]> {
+  const data = await safeFetch<BackendAgent[]>(API_PATHS.agents);
+  return data ?? [];
+}
+
+export async function fetchAgentProfile(id: number | string): Promise<BackendAgent | null> {
+  return await safeFetch<BackendAgent>(API_PATHS.agent(Number(id)));
 }
 
 export { formatPrice, generateProperties, getPropertiesByDistrict, getPropertiesByCategory } from "./properties";

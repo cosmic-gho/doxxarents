@@ -1,6 +1,6 @@
-"use client";
-/* eslint-disable */
 // @ts-nocheck
+/* eslint-disable */
+"use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 
@@ -297,7 +297,7 @@ function buildProperties() {
 const ALL_PROPERTIES = buildProperties();
 
 function formatNaira(n) {
-  return "₦" + Math.round(n).toLocaleString("en-NG");
+  return "₦" + Math.round(n).toLocaleString("en-GB");
 }
 
 // Returns undefined for districts without a supplied hero photo yet — components
@@ -608,9 +608,8 @@ function Navbar({ view, setView, savedCount, compareCount, query, setQuery, onSe
   const NavItem = ({ id, label }) => (
     <button
       onClick={() => setView({ name: id })}
-      className={`text-sm px-1 pb-1 border-b-2 transition-colors ${
-        view.name === id ? "border-amber-400 text-neutral-100" : "border-transparent text-neutral-400 hover:text-neutral-200"
-      }`}
+      className={`text-sm px-1 pb-1 border-b-2 transition-colors ${view.name === id ? "border-amber-400 text-neutral-100" : "border-transparent text-neutral-400 hover:text-neutral-200"
+        }`}
     >
       {label}
     </button>
@@ -780,7 +779,7 @@ function Home({ setView, onOpenProperty, onOpenSearch, onOpenDistrict }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {featured.map((p) => (
             <div key={p.id} onClick={() => onOpenProperty(p.id)} className="cursor-pointer">
-              <PropertyCard property={p} onOpen={onOpenProperty} saved={false} onToggleSave={() => {}} compared={false} onToggleCompare={() => {}} />
+              <PropertyCard property={p} onOpen={onOpenProperty} saved={false} onToggleSave={() => { }} compared={false} onToggleCompare={() => { }} />
             </div>
           ))}
         </div>
@@ -835,11 +834,10 @@ function FilterBar({ filters, setFilters, sort, setSort, resultCount }) {
   const chip = (key, label) => (
     <button
       onClick={() => toggle(key)}
-      className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
-        filters[key]
+      className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${filters[key]
           ? "bg-amber-400 border-amber-400 text-neutral-900 font-medium"
           : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700"
-      }`}
+        }`}
     >
       {label}
     </button>
@@ -1669,7 +1667,7 @@ function AgentProfile({ agentId, onBack, onOpenProperty }) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {listings.map((p) => (
-              <PropertyCard key={p.id} property={p} onOpen={onOpenProperty} saved={false} onToggleSave={() => {}} compared={false} onToggleCompare={() => {}} />
+              <PropertyCard key={p.id} property={p} onOpen={onOpenProperty} saved={false} onToggleSave={() => { }} compared={false} onToggleCompare={() => { }} />
             ))}
           </div>
         )}
@@ -1915,7 +1913,7 @@ function TeamCard({ member }) {
       <p className="text-neutral-600 text-[11px] leading-relaxed mb-3">{member.experience}</p>
       <div className="flex items-center gap-3 mt-auto">
         <a href={member.linkedin} aria-label={`${member.name} on LinkedIn`} className="text-neutral-500 hover:text-amber-400">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4.98 3.5C4.98 4.9 3.94 6 2.5 6S0 4.9 0 3.5 1.06 1 2.5 1s2.48 1.1 2.48 2.5zM.24 8.25h4.5V23H.24V8.25zM8.98 8.25h4.31v2.01h.06c.6-1.1 2.06-2.26 4.24-2.26 4.53 0 5.37 2.85 5.37 6.56V23h-4.5v-6.66c0-1.59-.03-3.63-2.2-3.63-2.2 0-2.54 1.72-2.54 3.51V23h-4.5V8.25z"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4.98 3.5C4.98 4.9 3.94 6 2.5 6S0 4.9 0 3.5 1.06 1 2.5 1s2.48 1.1 2.48 2.5zM.24 8.25h4.5V23H.24V8.25zM8.98 8.25h4.31v2.01h.06c.6-1.1 2.06-2.26 4.24-2.26 4.53 0 5.37 2.85 5.37 6.56V23h-4.5v-6.66c0-1.59-.03-3.63-2.2-3.63-2.2 0-2.54 1.72-2.54 3.51V23h-4.5V8.25z" /></svg>
         </a>
         <a href={`mailto:${member.email}`} aria-label={`Email ${member.name}`} className="text-neutral-500 hover:text-amber-400">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M2 6l10 7 10-7" /></svg>

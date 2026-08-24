@@ -50,7 +50,7 @@ export default async function HomePage() {
               <span className="text-sm text-stone-500">Any property type</span>
             </div>
             <Link
-              href="/properties/2-bedroom"
+              href="/search"
               className="rounded-xl bg-ink px-6 py-3 text-center text-sm font-medium text-paper transition hover:bg-stone-800"
             >
               Search

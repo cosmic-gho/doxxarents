@@ -3,23 +3,35 @@
 @tailwind utilities;
 
 @layer base {
+  /* Full-viewport base for the SPA shell */
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
   html {
     scroll-behavior: smooth;
   }
+
+  /* Brand selection colour */
   ::selection {
-    background: #C9A24B;
+    background: #F5C24C;
     color: #0B0B0C;
   }
+
   *:focus-visible {
-    outline: 2px solid #C9A24B;
+    outline: 2px solid #F5C24C;
     outline-offset: 2px;
   }
 }
 
 @layer components {
-  /* Signature nameplate: mirrors the serif, letter-spaced, diamond-divided
-     title treatment used across DOXXARentals' district photography, so the
-     brand system reads as one continuous visual language. */
+  /* Legacy utility classes kept so existing sub-pages (/login, /register,
+     /about, /districts, etc.) continue to compile without errors. These pages
+     are preserved for future backend integration. */
+
   .nameplate {
     font-family: var(--font-display);
     letter-spacing: 0.12em;

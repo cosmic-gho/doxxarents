@@ -141,15 +141,14 @@ function SavedPropertyCard({
   isRemoving: boolean;
 }) {
   const property = saved.property;
-  const primaryImage = property.images?.find((img) => img.is_primary) || property.images?.[0];
 
   return (
     <div className="group relative overflow-hidden rounded-2xl bg-white shadow-card transition hover:shadow-lg">
       {/* Image */}
       <Link href={`/properties/p/${property.id}`} className="relative block aspect-[4/3]">
-        {primaryImage?.image ? (
+        {property.image ? (
           <Image
-            src={primaryImage.image}
+            src={property.image}
             alt={property.title}
             fill
             className="object-cover transition group-hover:scale-105"
@@ -179,8 +178,7 @@ function SavedPropertyCard({
         <div className="flex items-start justify-between">
           <div>
             <p className="font-display text-lg text-ink">
-              {formatPrice(property.monthly_rent)}
-              <span className="text-sm font-normal text-stone-500">/mo</span>
+              {formatPrice(property.price)}
             </p>
             <h3 className="mt-1 font-medium text-ink line-clamp-1">{property.title}</h3>
           </div>
@@ -188,8 +186,8 @@ function SavedPropertyCard({
 
         <p className="mt-2 flex items-center gap-1 text-sm text-stone-500">
           <MapPin className="h-4 w-4" />
-          {property.address}
-          {property.district_details && `, ${property.district_details.name}`}
+          {property.district.name}
+          {property.category?.name && ` · ${property.category.name}`}
         </p>
 
         <div className="mt-4 flex items-center gap-4 border-t border-stone-100 pt-4 text-sm text-stone-600">

@@ -17,6 +17,9 @@ export type Property = {
   status: PropertyStatus;
   badges: TrustBadgeType[];
   image: string;
+  address: string;
+  latitude: string | number | null;
+  longitude: string | number | null;
 };
 
 const STATUSES: PropertyStatus[] = ["available", "available", "available", "reserved", "rented"];
@@ -52,6 +55,9 @@ export function generateProperties(district: District, category: PropertyCategor
         ...(seed % 7 === 0 ? (["new"] as TrustBadgeType[]) : []),
       ],
       image: district.image,
+      address: `Mock Address in ${district.name}`,
+      latitude: null,
+      longitude: null,
     } satisfies Property;
   });
 }
@@ -75,5 +81,5 @@ export function getPropertiesByCategory(categorySlug: string, count = 12): Prope
 }
 
 export function formatPrice(n: number) {
-  return `₦${n.toLocaleString("en-NG")} / year`;
+  return `₦${n.toLocaleString("en-GB")} / year`;
 }

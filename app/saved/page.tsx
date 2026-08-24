@@ -1,14 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Saved Properties — DOXXARentals",
-  description: "View and manage your saved rental properties on DOXXARentals.",
-};
-
-
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Heart, ArrowLeft, Trash2, Loader2, MapPin, Bed, Bath } from "lucide-react";

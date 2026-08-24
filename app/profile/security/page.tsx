@@ -1,14 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Security Settings — DOXXARentals",
-  description: "Change your password and manage security settings for your DOXXARentals account.",
-};
-
-
-
 import { useState } from "react";
 import { API_BASE } from "@/lib/api";
 import { Loader2, Check } from "lucide-react";

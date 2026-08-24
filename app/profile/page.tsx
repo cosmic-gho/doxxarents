@@ -1,14 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Profile Settings — DOXXARentals",
-  description: "Manage your DOXXARentals account details, contact information and preferences.",
-};
-
-
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { API_BASE } from "@/lib/api";

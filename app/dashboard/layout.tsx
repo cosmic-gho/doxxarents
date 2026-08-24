@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+
+  title: "Agent Dashboard — DOXXARentals",
+  description: "Manage your property listings, view analytics, and handle inspection requests from your DOXXARentals agent dashboard.",
+  };
+
 "use client";
 
 import Link from "next/link";

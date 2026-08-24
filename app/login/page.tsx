@@ -1,14 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Sign In — DOXXARentals",
-  description: "Sign in to your DOXXARentals account to access saved properties, book inspections and manage your listings.",
-};
-
-
-
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";

@@ -1,14 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Agent Dashboard — DOXXARentals",
-  description: "Manage your property listings, view analytics, and handle inspection requests from your DOXXARentals agent dashboard.",
-};
-
-
-
 import { useEffect, useState } from "react";
 import { ProtectedRoute, useAuth } from "@/lib/auth";
 import { API_BASE } from "@/lib/api";

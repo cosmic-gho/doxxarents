@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+
+  title: "Profile Settings — DOXXARentals",
+  description: "Manage your DOXXARentals account details, contact information and preferences.",
+  };
+
 "use client";
 
 import Link from "next/link";

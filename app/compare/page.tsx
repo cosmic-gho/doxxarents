@@ -1,16 +1,18 @@
 "use client";
 
-import { AgentProfile } from "@/components/views/Views";
+import { CompareView } from "@/components/views/Views";
 import { useRouter } from "next/navigation";
+import { useApp } from "@/components/providers/AppProvider";
 
-export default function AgentProfilePage({ params }: { params: { id: string } }) {
+export default function ComparePage() {
   const router = useRouter();
+  const { compareIds, toggleCompare } = useApp();
 
   return (
     <div className="bg-neutral-950 min-h-screen" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      <AgentProfile 
-        agentId={params.id}
-        onBack={() => router.back()}
+      <CompareView 
+        ids={compareIds}
+        toggleCompare={toggleCompare}
         onOpenProperty={(id: string) => router.push(`/properties/${id}`)}
       />
     </div>

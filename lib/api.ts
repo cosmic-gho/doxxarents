@@ -156,7 +156,7 @@ function computeBadges(p: BackendProperty, daysOld: number): TrustBadgeType[] {
   if (p.is_verified) badges.push("doxxa-verified");
   else badges.push("verified-property");
   if (daysOld <= 7) badges.push("new");
-  if ((p.views_count ?? 0) >= 50) badges.push("featured");
+  if (p.is_featured || p.is_premium || (p.views_count ?? 0) >= 50) badges.push("featured");
   return badges;
 }
 
@@ -307,6 +307,10 @@ export async function fetchPropertyById(id: number | string): Promise<FEProperty
   const data = await safeFetch<BackendProperty>(API_PATHS.property(Number(id)));
   if (!data) return null;
   return adaptBackendProperty(data);
+}
+
+export async function fetchRawPropertyById(id: number | string): Promise<BackendProperty | null> {
+  return await safeFetch<BackendProperty>(API_PATHS.property(Number(id)));
 }
 
 export async function fetchAgents(): Promise<BackendAgent[]> {

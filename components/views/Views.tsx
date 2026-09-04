@@ -14,8 +14,9 @@ const VirtualTourViewer = dynamic(() => import("@/components/VirtualTourViewer")
 import { makePaystackPayment } from "@/lib/paystack";
 import { useAuth } from "@/lib/auth";
 
-export function Home({ setView, onOpenProperty, onOpenSearch, onOpenDistrict, featuredProperties }) {
+export function Home({ setView, onOpenProperty, onOpenSearch, onOpenDistrict, onOpenState, featuredProperties, statesData }) {
   const featured = featuredProperties || ALL_PROPERTIES.filter((p) => p.premium).slice(0, 6);
+  const states = statesData && statesData.length > 0 ? statesData : STATES_LIST;
   const parallax = useParallax(0.12);
   return (
     <div>
@@ -64,6 +65,76 @@ export function Home({ setView, onOpenProperty, onOpenSearch, onOpenDistrict, fe
               </button>
             </div>
           </FadeUp>
+        </div>
+      </div>
+
+      {/* Explore by State */}
+      <div className="max-w-6xl mx-auto px-5 pt-12">
+        <div className="flex items-baseline justify-between mb-2">
+          <div>
+            <p className="text-amber-400 text-xs tracking-[0.25em] uppercase mb-1">Expansion Roadmap</p>
+            <h2 className="text-neutral-50 text-2xl md:text-3xl" style={{ fontFamily: "Georgia, serif" }}>Explore by State</h2>
+          </div>
+          <span className="text-neutral-500 text-xs hidden sm:inline">Currently live in Abuja (FCT)</span>
+        </div>
+        <p className="text-neutral-400 text-sm max-w-xl mb-6">
+          Browse verified rental listings, district breakdowns, and trusted local agents by state.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {states.map((state) => {
+            const isLive = state.status === "LIVE" || state.slug === "abuja";
+            return (
+              <div
+                key={state.slug}
+                onClick={() => {
+                  if (isLive && onOpenState) {
+                    onOpenState(state.slug);
+                  }
+                }}
+                className={`relative rounded-xl border p-5 flex flex-col justify-between transition-all duration-300 ${
+                  isLive
+                    ? "bg-neutral-900/90 border-neutral-700 hover:border-amber-400/80 cursor-pointer group shadow-lg hover:shadow-amber-400/10 hover:-translate-y-1"
+                    : "bg-neutral-950/60 border-neutral-900 opacity-60 cursor-not-allowed select-none"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-2xl">
+                      {state.slug === "abuja" ? "🏛️" : state.slug === "lagos" ? "🌊" : state.slug === "port-harcourt" ? "🌿" : state.slug === "edo" ? "🏺" : "✨"}
+                    </span>
+                    {isLive ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-950/90 text-emerald-400 border border-emerald-800">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        LIVE
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-neutral-900 text-neutral-400 border border-neutral-800">
+                        Coming soon
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-neutral-100 font-medium text-base mb-1" style={{ fontFamily: "Georgia, serif" }}>
+                    {state.shortName || state.name}
+                  </p>
+                  <p className="text-neutral-500 text-xs line-clamp-2 mb-3">
+                    {state.blurb}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs">
+                  <span className={isLive ? "text-amber-400 font-medium" : "text-neutral-600"}>
+                    {isLive ? `${state.districts_count || 19} districts` : "Launching soon"}
+                  </span>
+                  {isLive && (
+                    <span className="text-neutral-400 group-hover:text-amber-400 group-hover:translate-x-1 transition-transform">
+                      &rarr;
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -383,11 +454,28 @@ export function CategoryCard({ category, count, onClick, delay }) {
 }
 
 export function DistrictPage({ districtKey, onBack, onOpenCategory }) {
-  const district = DISTRICT_LIST.find((d) => d.key === districtKey);
+  const normKey = (districtKey || "").toLowerCase().replace(/[-_]/g, "");
+  const district = DISTRICT_LIST.find((d) => 
+    (d.key && d.key.toLowerCase().replace(/[-_]/g, "") === normKey) ||
+    (d.name && d.name.toLowerCase().replace(/[-_ ]/g, "") === normKey)
+  ) || {
+    key: districtKey,
+    name: (districtKey || "").replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    blurb: `Explore verified properties and apartments in ${(districtKey || "").replace(/[-_]/g, " ")}.`,
+  };
   const parallax = useParallax(0.1);
-  if (!district) return <EmptyState title="District not found" body="This district may have been removed." />;
-  const districtProperties = ALL_PROPERTIES.filter((p) => p.districtKey === districtKey);
-  const countFor = (catKey) => districtProperties.filter((p) => p.categoryKey === catKey).length;
+  const districtProperties = ALL_PROPERTIES.filter((p) => {
+    const pKey = (p.districtKey || "").toLowerCase().replace(/[-_]/g, "");
+    const pName = (p.district || "").toLowerCase().replace(/[-_ ]/g, "");
+    return pKey === normKey || pName === normKey;
+  });
+  const countFor = (catKey) => {
+    const normCat = catKey.toLowerCase().replace(/[-_]/g, "");
+    return districtProperties.filter((p) => {
+      const pCat = (p.categoryKey || "").toLowerCase().replace(/[-_]/g, "");
+      return pCat === normCat;
+    }).length;
+  };
 
   return (
     <div>
@@ -400,7 +488,7 @@ export function DistrictPage({ districtKey, onBack, onOpenCategory }) {
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/55 to-neutral-950/10" />
         <div className="relative max-w-6xl mx-auto w-full px-5 pb-8">
-          <button onClick={onBack} className="text-neutral-300 hover:text-neutral-100 text-xs mb-4">&larr; Home</button>
+          <button onClick={onBack} className="text-neutral-300 hover:text-neutral-100 text-xs mb-4">&larr; Abuja Hub</button>
           <FadeUp delay={0}>
             <p className="text-amber-400 text-xs tracking-[0.25em] uppercase mb-2">Abuja, Nigeria</p>
           </FadeUp>
@@ -423,7 +511,7 @@ export function DistrictPage({ districtKey, onBack, onOpenCategory }) {
               category={cat}
               count={countFor(cat.key)}
               delay={i * 40}
-              onClick={() => onOpenCategory(district.key, cat.key)}
+              onClick={() => onOpenCategory(district.key || districtKey, cat.key)}
             />
           ))}
         </div>
@@ -434,15 +522,40 @@ export function DistrictPage({ districtKey, onBack, onOpenCategory }) {
 }
 
 export function DistrictCategoryListings({ districtKey, categoryKey, onBack, onBackHome, onOpenProperty, saved, toggleSave, compareIds, toggleCompare }) {
-  const district = DISTRICT_LIST.find((d) => d.key === districtKey);
-  const category = PROPERTY_CATEGORIES.find((c) => c.key === categoryKey);
-  if (!district || !category) return <EmptyState title="Not found" body="This page may have been removed." />;
-  const results = ALL_PROPERTIES.filter((p) => p.districtKey === districtKey && p.categoryKey === categoryKey);
+  const normKey = (districtKey || "").toLowerCase().replace(/[-_]/g, "");
+  const district = DISTRICT_LIST.find((d) => 
+    (d.key && d.key.toLowerCase().replace(/[-_]/g, "") === normKey) ||
+    (d.name && d.name.toLowerCase().replace(/[-_ ]/g, "") === normKey)
+  ) || {
+    key: districtKey,
+    name: (districtKey || "").replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+  };
+
+  const normCat = (categoryKey || "").toLowerCase().replace(/[-_ ]/g, "");
+  const category = PROPERTY_CATEGORIES.find((c) => 
+    c.key.toLowerCase().replace(/[-_ ]/g, "") === normCat ||
+    c.label.toLowerCase().replace(/[-_ ]/g, "").includes(normCat) ||
+    normCat.includes(c.key.toLowerCase().replace(/[-_ ]/g, ""))
+  ) || {
+    key: categoryKey,
+    label: (categoryKey || "").replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    icon: "🏠"
+  };
+
+  const results = ALL_PROPERTIES.filter((p) => {
+    const pDist = (p.districtKey || "").toLowerCase().replace(/[-_]/g, "");
+    const pDistName = (p.district || "").toLowerCase().replace(/[-_ ]/g, "");
+    const pCat = (p.categoryKey || "").toLowerCase().replace(/[-_]/g, "");
+    const pType = (p.type || "").toLowerCase().replace(/[-_ ]/g, "");
+    const matchDist = pDist === normKey || pDistName === normKey;
+    const matchCat = pCat === normCat || pType.includes(normCat) || normCat.includes(pCat);
+    return matchDist && matchCat;
+  });
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-6">
       <div className="flex items-center gap-1.5 text-xs text-neutral-500 mb-4">
-        <button onClick={onBackHome} className="hover:text-neutral-300">Home</button>
+        <button onClick={onBackHome} className="hover:text-neutral-300">Abuja Hub</button>
         <span>/</span>
         <button onClick={onBack} className="hover:text-neutral-300">{district.name}</button>
         <span>/</span>

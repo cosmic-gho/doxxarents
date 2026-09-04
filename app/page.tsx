@@ -1,4 +1,4 @@
-import { fetchProperties } from "@/lib/api";
+import { fetchProperties, fetchStates } from "@/lib/api";
 import HomeClient from "./HomeClient";
 import type { Metadata } from "next";
 
@@ -25,7 +25,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function DoxxaRentals() {
-  const rawProperties = await fetchProperties({ pageSize: 6 });
+  const [rawProperties, states] = await Promise.all([
+    fetchProperties({ pageSize: 6 }),
+    fetchStates(),
+  ]);
   
   // Map real API data to the shape expected by the frontend design components
   const featuredProperties = rawProperties.map(p => ({
@@ -53,5 +56,5 @@ export default async function DoxxaRentals() {
     image: p.image
   }));
 
-  return <HomeClient featuredProperties={featuredProperties.length > 0 ? featuredProperties : null} />;
+  return <HomeClient featuredProperties={featuredProperties.length > 0 ? featuredProperties : null} statesData={states} />;
 }

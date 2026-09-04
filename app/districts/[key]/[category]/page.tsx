@@ -14,7 +14,7 @@ export default function DistrictCategoryRoutePage({ params }: { params: { key: s
         districtKey={params.key}
         categoryKey={params.category}
         onBack={() => router.push(`/districts/${params.key}`)}
-        onBackHome={() => router.push("/")}
+        onBackHome={() => router.push("/states/abuja")}
         onOpenProperty={(id: string) => router.push(`/properties/${id}`)}
         saved={saved}
         toggleSave={toggleSave}

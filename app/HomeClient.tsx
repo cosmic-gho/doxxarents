@@ -3,7 +3,13 @@
 import { Home } from "@/components/views/Views";
 import { useRouter } from "next/navigation";
 
-export default function HomeClient({ featuredProperties }: { featuredProperties: any }) {
+export default function HomeClient({ 
+  featuredProperties,
+  statesData,
+}: { 
+  featuredProperties: any;
+  statesData?: any[];
+}) {
   const router = useRouter();
 
   return (
@@ -17,7 +23,9 @@ export default function HomeClient({ featuredProperties }: { featuredProperties:
         onOpenProperty={(id: string) => router.push(`/properties/${id}`)}
         onOpenSearch={() => router.push(`/search`)}
         onOpenDistrict={(key: string) => router.push(`/districts/${key}`)}
+        onOpenState={(stateSlug: string) => router.push(`/states/${stateSlug}`)}
         featuredProperties={featuredProperties}
+        statesData={statesData}
       />
     </div>
   );

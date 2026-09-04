@@ -10,7 +10,7 @@ export default function DistrictRoutePage({ params }: { params: { key: string } 
     <div className="bg-neutral-950 min-h-screen" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <DistrictPage 
         districtKey={params.key}
-        onBack={() => router.push("/")}
+        onBack={() => router.push("/states/abuja")}
         onOpenCategory={(districtKey: string, categoryKey: string) => router.push(`/districts/${districtKey}/${categoryKey}`)}
       />
     </div>

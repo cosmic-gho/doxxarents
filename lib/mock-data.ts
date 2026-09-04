@@ -1,26 +1,82 @@
 // @ts-nocheck
 /* eslint-disable */
 
+export const STATES_LIST = [
+  {
+    slug: "abuja",
+    name: "Abuja (FCT)",
+    shortName: "Abuja",
+    status: "LIVE",
+    tagline: "Federal Capital Territory",
+    blurb: "Verified rental properties across planned districts in Abuja.",
+    imageKey: "district_maitama",
+    districtsCount: 19,
+  },
+  {
+    slug: "lagos",
+    name: "Lagos State",
+    shortName: "Lagos",
+    status: "COMING_SOON",
+    tagline: "Centre of Excellence",
+    blurb: "Island & Mainland verified rentals arriving soon.",
+    imageKey: "lagos",
+    districtsCount: 0,
+  },
+  {
+    slug: "port-harcourt",
+    name: "Port Harcourt (Rivers)",
+    shortName: "Port Harcourt",
+    status: "COMING_SOON",
+    tagline: "The Garden City",
+    blurb: "Oil city luxury & suburban living launching soon.",
+    imageKey: "ph",
+    districtsCount: 0,
+  },
+  {
+    slug: "edo",
+    name: "Edo State",
+    shortName: "Edo",
+    status: "COMING_SOON",
+    tagline: "Heartbeat of the Nation",
+    blurb: "Benin City & environs rentals launching soon.",
+    imageKey: "edo",
+    districtsCount: 0,
+  },
+  {
+    slug: "osun",
+    name: "Osun State",
+    shortName: "Osun",
+    status: "COMING_SOON",
+    tagline: "Land of Virtue",
+    blurb: "Osogbo & university town rentals coming soon.",
+    imageKey: "osun",
+    districtsCount: 0,
+  },
+];
+
 export const DISTRICT_LIST = [
-  { key: "apo", name: "Apo", blurb: "Mixed residential and retail" },
-  { key: "asokoro", name: "Asokoro", blurb: "Government hill, embassies nearby" },
-  { key: "dawaki", name: "Dawaki", blurb: "Established estates, easy access to the airport road" },
-  { key: "guzape", name: "Guzape", blurb: "Hilltop views over the city" },
-  { key: "gwagwalada", name: "Gwagwalada", blurb: "Satellite town, spacious plots" },
-  { key: "gwarinpa", name: "Gwarinpa", blurb: "Africa's largest housing estate" },
-  { key: "jabi", name: "Jabi", blurb: "Lakeside views, vibrant nightlife" },
-  { key: "jahi", name: "Jahi", blurb: "Fast-growing, family estates" },
-  { key: "kado", name: "Kado", blurb: "Riverside, emerging apartments" },
-  { key: "katampe", name: "Katampe", blurb: "Elevated views over Jabi Lake" },
-  { key: "katampe_ext", name: "Katampe Extension", blurb: "New builds, elevated hillside" },
-  { key: "kubwa", name: "Kubwa", blurb: "Affordable, well connected" },
-  { key: "kuje", name: "Kuje", blurb: "Suburban calm, spacious family homes" },
-  { key: "lifecamp", name: "Life Camp", blurb: "Gated estates, quiet streets" },
-  { key: "lokogoma", name: "Lokogoma", blurb: "Quiet layout, family-friendly duplexes" },
-  { key: "lugbe", name: "Lugbe", blurb: "Near the airport, growing fast" },
-  { key: "maitama", name: "Maitama", blurb: "Diplomatic zone, tree-lined avenues" },
+  { key: "asokoro", name: "Asokoro", blurb: "Government hill, luxury estates & embassies nearby" },
+  { key: "maitama", name: "Maitama", blurb: "Diplomatic zone, tree-lined avenues & high-end residences" },
+  { key: "wuse", name: "Wuse", blurb: "Central business district, shopping, dining & vibrant apartments" },
   { key: "wuse2", name: "Wuse II", blurb: "High-rise living, shopping and nightlife" },
-  { key: "wuye", name: "Wuye", blurb: "Planned district, wide boulevards" },
+  { key: "jabi", name: "Jabi", blurb: "Lakeside views, recreational parks & vibrant nightlife" },
+  { key: "gwarinpa", name: "Gwarinpa", blurb: "Africa's largest housing estate, diverse family rentals" },
+  { key: "lugbe", name: "Lugbe", blurb: "Airport corridor, fast-growing affordable communities" },
+  { key: "kuje", name: "Kuje", blurb: "Suburban calm, spacious family homes & green layout" },
+  { key: "guzape", name: "Guzape", blurb: "Hilltop panoramic city views & luxury modern villas" },
+  { key: "lifecamp", name: "Life Camp", blurb: "Gated estates, diplomatic housing & quiet streets" },
+  { key: "apo", name: "Apo", blurb: "Prime mixed residential, Apo Resettlement & legislative quarters" },
+  { key: "katampe", name: "Katampe", blurb: "Elevated views over Jabi Lake & serene environment" },
+  { key: "jahi", name: "Jahi", blurb: "Fast-growing residential zone with newly built modern flats" },
+  { key: "wuye", name: "Wuye", blurb: "Centrally located planned layout with wide avenues" },
+  { key: "mabushi", name: "Mabushi", blurb: "Central intersection district, convenient connectivity across Abuja" },
+  { key: "utako", name: "Utako", blurb: "Vibrant commercial and residential hub with easy transit links" },
+  { key: "lokogoma", name: "Lokogoma", blurb: "Quiet layout, family-friendly gated estates & duplexes" },
+  { key: "dawaki", name: "Dawaki", blurb: "Established hillside estates, easy access to Kubwa expressway" },
+  { key: "katampe_ext", name: "Katampe Extension", blurb: "Prestigious diplomatic extension with high-end modern builds" },
+  { key: "kubwa", name: "Kubwa", blurb: "Well-connected satellite city with accessible and affordable apartments" },
+  { key: "kado", name: "Kado", blurb: "Riverside, emerging modern apartments" },
+  { key: "gwagwalada", name: "Gwagwalada", blurb: "Satellite town, spacious plots" },
 ];
 
 export const TEAM_LIST = [
@@ -205,14 +261,10 @@ export function buildProperties() {
   const props = [];
   let id = 1;
   DISTRICT_LIST.forEach((d) => {
-    // Each district gets 5-8 of the 13 categories represented, 1-2 listings each,
-    // so every district's category page has a realistic, varied spread.
-    const shuffled = [...PROPERTY_CATEGORIES].sort(() => rand() - 0.5);
-    const categoryCount = 5 + Math.floor(rand() * 4);
-    const districtCategories = shuffled.slice(0, categoryCount);
-
-    districtCategories.forEach((cat) => {
-      const listingsForCategory = rand() > 0.6 ? 2 : 1;
+    // Generate active listings across categories for each district
+    PROPERTY_CATEGORIES.forEach((cat) => {
+      const isPopular = ["1bed", "2bed", "3bed", "4bed", "duplex", "mini-flat", "self-contained", "studio"].includes(cat.key);
+      const listingsForCategory = isPopular ? (rand() > 0.4 ? 2 : 1) : (rand() > 0.6 ? 2 : 1);
       for (let i = 0; i < listingsForCategory; i++) {
         const type = cat.label;
         const agent = AGENT_LIST[Math.floor(rand() * AGENT_LIST.length)];

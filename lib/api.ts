@@ -94,7 +94,22 @@ export type BackendProperty = {
   has_unlocked_virtual_tour?: boolean;
 };
 
+export type BackendState = {
+  id: number;
+  slug: string;
+  name: string;
+  region: string;
+  tagline: string;
+  blurb: string;
+  status: "LIVE" | "COMING_SOON";
+  launch_note?: string;
+  order: number;
+  districts_count?: number;
+};
+
 export const API_PATHS = {
+  states: "/api/states/",
+  state: (slug: string) => `/api/states/${slug}/`,
   districts: "/api/districts/",
   district: (slug: string) => `/api/districts/${slug}/`,
   categories: "/api/categories/",
@@ -219,6 +234,26 @@ export function adaptBackendProperty(
     latitude: bp.latitude ?? null,
     longitude: bp.longitude ?? null,
   };
+}
+
+export async function fetchStates(): Promise<BackendState[]> {
+  const data = await safeFetch<BackendState[]>(API_PATHS.states);
+  if (data && Array.isArray(data) && data.length > 0) {
+    return data;
+  }
+  return [
+    { id: 1, slug: "abuja", name: "Abuja (FCT)", region: "North Central", tagline: "Federal Capital Territory", blurb: "Verified rental properties across planned districts in Abuja.", status: "LIVE", order: 1, districts_count: 19 },
+    { id: 2, slug: "lagos", name: "Lagos State", region: "South West", tagline: "Centre of Excellence", blurb: "Island & Mainland verified rentals arriving soon.", status: "COMING_SOON", order: 2, districts_count: 0 },
+    { id: 3, slug: "port-harcourt", name: "Port Harcourt (Rivers)", region: "South South", tagline: "The Garden City", blurb: "Oil city luxury & suburban living launching soon.", status: "COMING_SOON", order: 3, districts_count: 0 },
+    { id: 4, slug: "edo", name: "Edo State", region: "South South", tagline: "Heartbeat of the Nation", blurb: "Benin City & environs rentals launching soon.", status: "COMING_SOON", order: 4, districts_count: 0 },
+    { id: 5, slug: "osun", name: "Osun State", region: "South West", tagline: "Land of Virtue", blurb: "Osogbo & university town rentals coming soon.", status: "COMING_SOON", order: 5, districts_count: 0 },
+  ];
+}
+
+export async function fetchRawDistricts(stateSlug?: string): Promise<any[]> {
+  const url = stateSlug ? `${API_PATHS.districts}?state=${encodeURIComponent(stateSlug)}` : API_PATHS.districts;
+  const data = await safeFetch<any[]>(url);
+  return data || [];
 }
 
 export async function fetchDistricts(): Promise<FEDistrict[]> {

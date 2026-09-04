@@ -25,7 +25,11 @@ export function Home({ setView, onOpenProperty, onOpenSearch, onOpenDistrict, on
           className="absolute inset-0 w-full h-[130%] -top-[8%]"
           style={{ transform: `translateY(${parallax}px) scale(1.08)`, transition: "transform 0.1s linear" }}
         >
-          <DistrictHeroImage districtKey="asokoro" name="Asokoro, Abuja" className="w-full h-full object-cover" />
+          <img
+            src="/images/hero-real-estate.jpg"
+            alt="Luxury contemporary apartments in Abuja"
+            className="w-full h-full object-cover object-center"
+          />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-neutral-950/20" />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/40 via-transparent to-transparent" />
@@ -35,7 +39,7 @@ export function Home({ setView, onOpenProperty, onOpenSearch, onOpenDistrict, on
           </FadeUp>
           <FadeUp delay={80}>
             <h1 className="text-neutral-50 text-4xl md:text-5xl leading-tight max-w-xl mb-4" style={{ fontFamily: "Georgia, serif" }}>
-              Rent with confidence, anywhere in Abuja
+              Rent with confidence, anywhere in Nigeria
             </h1>
           </FadeUp>
           <FadeUp delay={160}>

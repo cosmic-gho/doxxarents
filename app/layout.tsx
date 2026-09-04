@@ -18,7 +18,7 @@ const sans = Inter({
 export const metadata: Metadata = {
   title: "DOXXARentals — Find Your Next Home Without the Stress",
   description:
-    "A technology-driven rental platform for Abuja, Nigeria. Verified listings, verified agents, and a rental experience built for trust.",
+    "A technology-driven rental platform for Nigeria. Verified listings, verified agents, and a rental experience built for trust.",
   icons: {
     icon: "/images/logo/favicon.png",
   },

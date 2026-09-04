@@ -680,7 +680,7 @@ function Home({ setView, onOpenProperty, onOpenSearch, onOpenDistrict }) {
           </FadeUp>
           <FadeUp delay={80}>
             <h1 className="text-neutral-50 text-4xl md:text-5xl leading-tight max-w-xl mb-4" style={{ fontFamily: "Georgia, serif" }}>
-              Rent with confidence, anywhere in Abuja
+              Rent with confidence, anywhere in Nigeria
             </h1>
           </FadeUp>
           <FadeUp delay={160}>

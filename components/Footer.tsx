@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="flex items-center gap-5 text-neutral-500 text-xs">
           <Link href="/about" className="hover:text-neutral-300">About us</Link>
           <Link href="/register" className="hover:text-neutral-300">Sign up</Link>
-          <span>Abuja, Nigeria &middot; Prototype build</span>
+          <span>Nigeria &middot;</span>
         </div>
       </div>
     </div>

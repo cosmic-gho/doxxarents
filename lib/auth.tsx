@@ -34,14 +34,14 @@ interface AuthContextType {
 }
 
 interface RegisterData {
-  username: string;
+  username?: string;
   email: string;
   password: string;
-  password2: string;
+  password2?: string;
   first_name?: string;
   last_name?: string;
   phone_number?: string;
-  role?: "USER" | "AGENT";
+  role?: "USER" | "AGENT" | string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -120,18 +120,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (data: RegisterData) => {
+    const payload: any = {
+      email: data.email,
+      password: data.password,
+      role: data.role || "USER",
+    };
+    if (data.username) payload.username = data.username;
+    if (data.first_name) payload.first_name = data.first_name;
+    if (data.last_name) payload.last_name = data.last_name;
+    if (data.phone_number) payload.phone_number = data.phone_number;
+
     const res = await fetch(`${API_BASE}/api/auth/register/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(JSON.stringify(err) || "Registration failed");
+      let msg = "Registration failed";
+      if (typeof err === "string") {
+        msg = err;
+      } else if (err.detail) {
+        msg = err.detail;
+      } else if (typeof err === "object" && err !== null) {
+        const firstKey = Object.keys(err)[0];
+        if (firstKey) {
+          const val = err[firstKey];
+          const valMsg = Array.isArray(val) ? val[0] : val;
+          msg = `${firstKey.replace('_', ' ')}: ${valMsg}`;
+        }
+      }
+      throw new Error(msg);
     }
 
-    await login(data.email, data.password);
+    const respData = await res.json();
+    if (respData.access && respData.refresh) {
+      setTokens({ access: respData.access, refresh: respData.refresh });
+      if (respData.user) {
+        setUser(respData.user);
+        try {
+          localStorage.setItem("user", JSON.stringify(respData.user));
+        } catch {}
+      } else {
+        await fetchProfileInternal();
+      }
+    } else {
+      await login(data.email, data.password);
+    }
   };
 
   const logout = () => {

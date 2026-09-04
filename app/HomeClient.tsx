@@ -9,7 +9,11 @@ export default function HomeClient({ featuredProperties }: { featuredProperties:
   return (
     <div className="bg-neutral-950" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <Home 
-        setView={() => {}} // ignored
+        setView={(v: any) => {
+          if (v?.name === "signup") {
+            router.push(`/register?role=${v.role || "renter"}`);
+          }
+        }}
         onOpenProperty={(id: string) => router.push(`/properties/${id}`)}
         onOpenSearch={() => router.push(`/search`)}
         onOpenDistrict={(key: string) => router.push(`/districts/${key}`)}

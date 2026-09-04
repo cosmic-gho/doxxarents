@@ -12,6 +12,7 @@ import dynamic from "next/dynamic";
 const PropertyMap = dynamic(() => import("@/components/PropertyMap").then((m) => m.PropertyMap), { ssr: false });
 const VirtualTourViewer = dynamic(() => import("@/components/VirtualTourViewer").then((m) => m.VirtualTourViewer), { ssr: false });
 import { makePaystackPayment } from "@/lib/paystack";
+import { useAuth } from "@/lib/auth";
 
 export function Home({ setView, onOpenProperty, onOpenSearch, onOpenDistrict, featuredProperties }) {
   const featured = featuredProperties || ALL_PROPERTIES.filter((p) => p.premium).slice(0, 6);
@@ -1358,20 +1359,82 @@ export function PremiumSuccessView({ propertyId, propertyData = null, onViewProp
   );
 }
 
-export function SignupView({ initialRole, onBack }) {
+export function SignupView({ initialRole, onBack, onSuccess }) {
   const [role, setRole] = useState(initialRole || "renter");
-  const [submitted, setSubmitted] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [agency, setAgency] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  if (submitted) {
+  const { register } = useAuth();
+
+  useEffect(() => {
+    if (initialRole) {
+      setRole(initialRole);
+    }
+  }, [initialRole]);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email.trim() || !password) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+
+    if (confirmPassword && password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const nameParts = fullName.trim().split(" ");
+      const firstName = nameParts[0] || (role === "agent" && agency ? agency : "");
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      await register({
+        email: email.trim().toLowerCase(),
+        password,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phone.trim(),
+        role: role === "agent" ? "AGENT" : "USER",
+      });
+
+      setSuccess(true);
+      if (onSuccess) {
+        onSuccess(role);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (success) {
     return (
       <div className="max-w-md mx-auto px-5 py-16 text-center">
         <div className="w-16 h-16 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-300 text-3xl flex items-center justify-center mx-auto mb-5">&#10003;</div>
-        <h1 className="text-neutral-50 text-2xl mb-3" style={{ fontFamily: "Georgia, serif" }}>Welcome to DoxxaRentals</h1>
+        <h1 className="text-neutral-50 text-2xl mb-3" style={{ fontFamily: "Georgia, serif" }}>Welcome to DOXXA</h1>
         <p className="text-neutral-400 text-sm mb-8">
-          Your {role === "renter" ? "renter" : "agent/landlord"} account has been created. Your dashboard would load here once connected to a backend.
+          Your {role === "agent" ? "agent" : "renter"} account has been created successfully. You are now logged in.
         </p>
         <button onClick={onBack} className="text-sm font-medium text-neutral-900 bg-amber-400 hover:bg-amber-300 rounded-lg px-6 py-3">
-          Back to home
+          Explore listings &rarr;
         </button>
       </div>
     );
@@ -1384,8 +1447,9 @@ export function SignupView({ initialRole, onBack }) {
         {[{ id: "renter", label: "I'm a renter" }, { id: "agent", label: "I'm an agent / landlord" }].map((r) => (
           <button
             key={r.id}
+            type="button"
             onClick={() => setRole(r.id)}
-            className={`flex-1 text-xs font-medium rounded-md py-2 ${role === r.id ? "bg-amber-400 text-neutral-900" : "text-neutral-400"}`}
+            className={`flex-1 text-xs font-medium rounded-md py-2 transition-colors ${role === r.id ? "bg-amber-400 text-neutral-900" : "text-neutral-400 hover:text-neutral-200"}`}
           >
             {r.label}
           </button>
@@ -1395,26 +1459,100 @@ export function SignupView({ initialRole, onBack }) {
         {role === "renter" ? "Create your renter account" : "Create your agent account"}
       </h1>
       <p className="text-neutral-500 text-sm mb-6">
-        {role === "renter" ? "Browse, save, and unlock premium listings." : "List properties and start receiving enquiries."}
+        {role === "renter" ? "Browse, save, and unlock premium listings." : "List properties and start receiving client enquiries."}
       </p>
-      <div
-        onSubmit={(e) => {
-          e.preventDefault();
-          setSubmitted(true);
-        }}
-        className="flex flex-col gap-3"
-      >
-        <input placeholder="Full name" className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500" />
-        <input placeholder="Email address" type="email" className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500" />
-        <input placeholder="Phone number" className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500" />
+
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-rose-950/60 border border-rose-800/80 text-rose-300 text-sm">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleRegister} className="flex flex-col gap-3">
+        <div>
+          <label className="text-xs text-neutral-400 block mb-1">Full name</label>
+          <input 
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder={role === "agent" ? "e.g. Samuel Okon" : "e.g. Amara Johnson"} 
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400" 
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-neutral-400 block mb-1">Email address *</label>
+          <input 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email" 
+            required
+            placeholder="you@example.com" 
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400" 
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-neutral-400 block mb-1">Phone number</label>
+          <input 
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            type="tel"
+            placeholder="+234 800 000 0000" 
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400" 
+          />
+        </div>
+
         {role === "agent" && (
-          <input placeholder="Agency / company name" className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500" />
+          <div>
+            <label className="text-xs text-neutral-400 block mb-1">Agency / Company name</label>
+            <input 
+              value={agency}
+              onChange={(e) => setAgency(e.target.value)}
+              placeholder="e.g. Apex Living Properties" 
+              className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400" 
+            />
+          </div>
         )}
-        <input placeholder="Password" type="password" className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500" />
-        <button onClick={() => setSubmitted(true)} className="text-sm font-medium text-neutral-900 bg-amber-400 hover:bg-amber-300 rounded-lg px-4 py-2.5 mt-1">
-          {role === "renter" ? "Create renter account" : "Create agent account"}
+
+        <div>
+          <label className="text-xs text-neutral-400 block mb-1">Password * (min 8 characters)</label>
+          <input 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password" 
+            required
+            minLength={8}
+            placeholder="••••••••" 
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400" 
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-neutral-400 block mb-1">Confirm password</label>
+          <input 
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            type="password" 
+            placeholder="••••••••" 
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400" 
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={isLoading}
+          className="text-sm font-medium text-neutral-900 bg-amber-400 hover:bg-amber-300 rounded-lg px-4 py-2.5 mt-2 transition disabled:opacity-50"
+        >
+          {isLoading ? "Creating account..." : (role === "renter" ? "Create renter account" : "Create agent account")}
         </button>
-      </div>
+
+        <p className="text-neutral-500 text-xs text-center mt-3">
+          Already have an account?{" "}
+          <Link href="/login" className="text-amber-400 hover:underline">
+            Log in
+          </Link>
+        </p>
+      </form>
     </div>
   );
 }

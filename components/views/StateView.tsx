@@ -55,15 +55,37 @@ export function StateView({
     );
   };
 
+  const [onlyActive, setOnlyActive] = useState(false);
+
+  const activeCount = useMemo(() => {
+    return districts.filter((d) => (d.properties_count || 0) > 0).length;
+  }, [districts]);
+
   const filteredDistricts = useMemo(() => {
-    if (!searchQuery.trim()) return districts;
-    const q = searchQuery.toLowerCase();
-    return districts.filter(
-      (d) =>
-        d.name.toLowerCase().includes(q) ||
-        (d.blurb && d.blurb.toLowerCase().includes(q))
-    );
-  }, [districts, searchQuery]);
+    let list = [...districts];
+
+    // Prioritize districts with active listings at the top!
+    list.sort((a, b) => {
+      const aCount = a.properties_count || 0;
+      const bCount = b.properties_count || 0;
+      if (bCount !== aCount) return bCount - aCount;
+      return a.name.localeCompare(b.name);
+    });
+
+    if (onlyActive) {
+      list = list.filter((d) => (d.properties_count || 0) > 0);
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(
+        (d) =>
+          d.name.toLowerCase().includes(q) ||
+          (d.blurb && d.blurb.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [districts, searchQuery, onlyActive]);
 
   const isLive = stateData.status === "LIVE" || stateData.slug === "abuja";
 
@@ -255,14 +277,42 @@ export function StateView({
             </p>
           </div>
 
-          <div className="w-full md:w-72">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search districts (e.g. Asokoro, Kubwa)..."
-              className="w-full bg-neutral-900 border border-neutral-800 focus:border-amber-400 text-neutral-200 text-xs rounded-xl px-4 py-2.5 focus:outline-none placeholder:text-neutral-600"
-            />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+            <div className="flex items-center bg-neutral-900/90 border border-neutral-800 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setOnlyActive(false)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  !onlyActive
+                    ? "bg-amber-400 text-neutral-950 shadow-sm font-semibold"
+                    : "text-neutral-400 hover:text-neutral-200"
+                }`}
+              >
+                All Districts ({districts.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setOnlyActive(true)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                  onlyActive
+                    ? "bg-amber-400 text-neutral-950 shadow-sm font-semibold"
+                    : "text-neutral-400 hover:text-amber-300"
+                }`}
+              >
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Active only ({activeCount})
+              </button>
+            </div>
+
+            <div className="w-full sm:w-64">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search districts (e.g. Asokoro, Kubwa)..."
+                className="w-full bg-neutral-900 border border-neutral-800 focus:border-amber-400 text-neutral-200 text-xs rounded-xl px-4 py-2 focus:outline-none placeholder:text-neutral-600"
+              />
+            </div>
           </div>
         </div>
 
@@ -273,6 +323,8 @@ export function StateView({
                 .toLowerCase()
                 .replace(/\s+/g, "-")
                 .replace(/_/g, "-");
+
+              const count = d.properties_count || 0;
 
               return (
                 <div
@@ -288,10 +340,14 @@ export function StateView({
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/30 to-transparent" />
-                    <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-950/80 text-amber-300 border border-amber-500/30 backdrop-blur-sm">
-                      {d.properties_count != null
-                        ? `${d.properties_count} properties`
-                        : "Browse units"}
+                    <span
+                      className={`absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold backdrop-blur-md transition-all ${
+                        count > 0
+                          ? "bg-amber-400/20 text-amber-300 border border-amber-400/50 shadow-sm shadow-amber-500/20"
+                          : "bg-neutral-950/70 text-neutral-400 border border-neutral-800"
+                      }`}
+                    >
+                      {count > 0 ? `✨ ${count} active` : "Units cataloguing"}
                     </span>
                   </div>
 

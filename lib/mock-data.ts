@@ -245,7 +245,7 @@ export const PROPERTY_CATEGORIES = [
 
 export const TYPES = PROPERTY_CATEGORIES.map((c) => c.label);
 
-export const STATUSES = ["Available", "Reserved", "Rented", "Pending Verification", "Coming Soon", "New Listing", "Featured Listing"];
+export const STATUSES = ["Available", "Available", "Available", "Reserved", "New Listing", "Featured Listing"];
 
 export function seededRandom(seed: number) {
   let s = seed % 2147483647;
@@ -300,6 +300,8 @@ export function buildProperties() {
           verified,
           premium,
           isNew,
+          isApproved: true,
+          moderationStatus: "APPROVED",
           status,
           popularity,
           daysAgo,

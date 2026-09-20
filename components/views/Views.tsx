@@ -360,6 +360,10 @@ export function Search({ initialQuery, onOpenProperty, saved, toggleSave, compar
 
   const results = useMemo(() => {
     let list = ALL_PROPERTIES.filter((p) => {
+      // Only approved properties display
+      if (p.moderationStatus && p.moderationStatus !== "APPROVED") return false;
+      if (p.moderation_status && p.moderation_status !== "APPROVED") return false;
+      if (p.status === "pending-verification" || p.status === "Pending Verification" || p.status === "under-review") return false;
       if (filters.district && p.districtKey !== filters.district) return false;
       if (filters.type && p.type !== filters.type) return false;
       if (filters.bedrooms && p.bedrooms < Number(filters.bedrooms)) return false;
@@ -469,6 +473,10 @@ export function DistrictPage({ districtKey, onBack, onOpenCategory }) {
   };
   const parallax = useParallax(0.1);
   const districtProperties = ALL_PROPERTIES.filter((p) => {
+    // Only approved properties display
+    if (p.moderationStatus && p.moderationStatus !== "APPROVED") return false;
+    if (p.moderation_status && p.moderation_status !== "APPROVED") return false;
+    if (p.status === "pending-verification" || p.status === "Pending Verification" || p.status === "under-review") return false;
     const pKey = (p.districtKey || "").toLowerCase().replace(/[-_]/g, "");
     const pName = (p.district || "").toLowerCase().replace(/[-_ ]/g, "");
     return pKey === normKey || pName === normKey;
@@ -547,6 +555,10 @@ export function DistrictCategoryListings({ districtKey, categoryKey, onBack, onB
   };
 
   const results = ALL_PROPERTIES.filter((p) => {
+    // Only approved properties display
+    if (p.moderationStatus && p.moderationStatus !== "APPROVED") return false;
+    if (p.moderation_status && p.moderation_status !== "APPROVED") return false;
+    if (p.status === "pending-verification" || p.status === "Pending Verification" || p.status === "under-review") return false;
     const pDist = (p.districtKey || "").toLowerCase().replace(/[-_]/g, "");
     const pDistName = (p.district || "").toLowerCase().replace(/[-_ ]/g, "");
     const pCat = (p.categoryKey || "").toLowerCase().replace(/[-_]/g, "");
@@ -818,11 +830,37 @@ export function PremiumUnlockPanel({ property, onUnlockPremium }) {
 export function PropertyDetail({ propertyId, propertyData, similarProperties, onBack, onOpenAgent, onOpenProperty, saved, toggleSave, compareIds, toggleCompare, isPremiumUnlocked, onUnlockPremium }) {
   const property = propertyData || ALL_PROPERTIES.find((p) => p.id === propertyId || String(p.id) === String(propertyId));
   if (!property) return <EmptyState title="Property not found" body="This listing may have been removed." />;
+
+  // Only approved properties display
+  if (
+    (property.moderation_status && property.moderation_status !== "APPROVED") ||
+    (property.moderationStatus && property.moderationStatus !== "APPROVED") ||
+    property.status === "pending-verification" ||
+    property.status === "under-review" ||
+    property.status === "Pending Verification"
+  ) {
+    return (
+      <div className="max-w-xl mx-auto px-5 py-24 text-center">
+        <EmptyState
+          title="Listing Pending Approval"
+          body="This property is currently awaiting verification by our compliance team and is not yet approved for public viewing."
+        />
+        <button onClick={onBack} className="mt-6 inline-flex items-center gap-1.5 text-xs font-medium text-amber-400 hover:text-amber-300">
+          &larr; Browse approved properties
+        </button>
+      </div>
+    );
+  }
   
   const agent = property.agent || (property.agentId ? getAgent(property.agentId) : null) || AGENT_LIST[0];
   const isSaved = Boolean(saved?.includes(property.id));
   const isCompared = Boolean(compareIds?.includes(property.id));
-  const similar = similarProperties || ALL_PROPERTIES.filter((p) => p.districtKey === property.districtKey && String(p.id) !== String(property.id)).slice(0, 3);
+  const similar = similarProperties || ALL_PROPERTIES.filter((p) => {
+    if (p.moderationStatus && p.moderationStatus !== "APPROVED") return false;
+    if (p.moderation_status && p.moderation_status !== "APPROVED") return false;
+    if (p.status === "pending-verification" || p.status === "Pending Verification" || p.status === "under-review") return false;
+    return p.districtKey === property.districtKey && String(p.id) !== String(property.id);
+  }).slice(0, 3);
   const nearby = getNearbyPlaces(property);
   const [inspectionBooked, setInspectionBooked] = useState(false);
   const [inspectionDate, setInspectionDate] = useState("");
@@ -1486,15 +1524,40 @@ export function SignupView({ initialRole, onBack, onSuccess }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
 
   useEffect(() => {
     if (initialRole) {
       setRole(initialRole);
     }
   }, [initialRole]);
+
+  const handleGoogleSignup = async () => {
+    setError("");
+    setIsGoogleLoading(true);
+    try {
+      const testEmail = prompt("Enter your Google account email to sign up:", "user@gmail.com");
+      if (!testEmail) {
+        setIsGoogleLoading(false);
+        return;
+      }
+      await loginWithGoogle({
+        email: testEmail.trim().toLowerCase(),
+        first_name: testEmail.split("@")[0],
+        role: role === "agent" ? "AGENT" : "USER",
+      });
+      setSuccess(true);
+      if (onSuccess) {
+        onSuccess(role);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-up failed.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -1559,31 +1622,60 @@ export function SignupView({ initialRole, onBack, onSuccess }) {
 
   return (
     <div className="max-w-md mx-auto px-5 py-10">
-      <button onClick={onBack} className="text-neutral-500 hover:text-neutral-300 text-sm mb-6">&larr; Back</button>
-      <div className="flex gap-2 mb-6 bg-neutral-900 border border-neutral-800 rounded-lg p-1">
-        {[{ id: "renter", label: "I'm a renter" }, { id: "agent", label: "I'm an agent / landlord" }].map((r) => (
-          <button
-            key={r.id}
-            type="button"
-            onClick={() => setRole(r.id)}
-            className={`flex-1 text-xs font-medium rounded-md py-2 transition-colors ${role === r.id ? "bg-amber-400 text-neutral-900" : "text-neutral-400 hover:text-neutral-200"}`}
-          >
-            {r.label}
-          </button>
-        ))}
-      </div>
-      <h1 className="text-neutral-50 text-2xl mb-1" style={{ fontFamily: "Georgia, serif" }}>
-        {role === "renter" ? "Create your renter account" : "Create your agent account"}
-      </h1>
-      <p className="text-neutral-500 text-sm mb-6">
-        {role === "renter" ? "Browse, save, and unlock premium listings." : "List properties and start receiving client enquiries."}
-      </p>
-
-      {error && (
-        <div className="mb-4 p-3 rounded-lg bg-rose-950/60 border border-rose-800/80 text-rose-300 text-sm">
-          {error}
+      <button onClick={onBack} className="text-neutral-500 hover:text-neutral-300 text-xs mb-6 inline-flex items-center gap-1.5">&larr; Back to DOXXARentals</button>
+      
+      <div className="bg-neutral-900/90 border border-neutral-800 rounded-2xl p-7 sm:p-8 shadow-2xl backdrop-blur-xl">
+        <div className="flex gap-2 mb-6 bg-neutral-950 border border-neutral-800 rounded-xl p-1">
+          {[{ id: "renter", label: "I'm a renter" }, { id: "agent", label: "I'm an agent / landlord" }].map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => setRole(r.id)}
+              className={`flex-1 text-xs font-semibold rounded-lg py-2 transition-colors ${role === r.id ? "bg-amber-400 text-neutral-950 shadow" : "text-neutral-400 hover:text-neutral-200"}`}
+            >
+              {r.label}
+            </button>
+          ))}
         </div>
-      )}
+
+        <h1 className="text-neutral-50 text-2xl sm:text-3xl font-normal mb-1" style={{ fontFamily: "Georgia, serif" }}>
+          {role === "renter" ? "Create your renter account" : "Create your agent account"}
+        </h1>
+        <p className="text-neutral-400 text-xs sm:text-sm mb-6">
+          {role === "renter" ? "Browse, save, and unlock premium listings across Abuja." : "List properties and start receiving verified client enquiries."}
+        </p>
+
+        {/* Google Direct Sign-Up */}
+        <button
+          type="button"
+          onClick={handleGoogleSignup}
+          disabled={isGoogleLoading}
+          className="w-full bg-neutral-950 hover:bg-neutral-800/80 border border-neutral-700 hover:border-amber-400/80 text-neutral-100 text-sm font-medium py-2.5 px-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 shadow-md hover:shadow-amber-400/5 mb-5 disabled:opacity-60"
+        >
+          {isGoogleLoading ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-400 border-t-amber-400" />
+          ) : (
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+            </svg>
+          )}
+          <span>Sign up with Google</span>
+        </button>
+
+        <div className="flex items-center gap-3 my-5">
+          <span className="h-px bg-neutral-800 flex-1" />
+          <span className="text-[11px] uppercase tracking-wider text-neutral-500 font-medium">Or email registration</span>
+          <span className="h-px bg-neutral-800 flex-1" />
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-rose-950/70 border border-rose-800/80 text-rose-300 text-xs">
+            {error}
+          </div>
+        )}
 
       <form onSubmit={handleRegister} className="flex flex-col gap-3">
         <div>
@@ -1670,6 +1762,7 @@ export function SignupView({ initialRole, onBack, onSuccess }) {
           </Link>
         </p>
       </form>
+      </div>
     </div>
   );
 }

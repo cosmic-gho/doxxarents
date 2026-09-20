@@ -28,7 +28,9 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (data: { credential?: string; email?: string; first_name?: string; last_name?: string; role?: string }) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  updateRole: (role: "USER" | "AGENT") => Promise<void>;
   logout: () => void;
   refreshToken: () => Promise<boolean>;
 }
@@ -197,12 +199,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async (googleData: { credential?: string; email?: string; first_name?: string; last_name?: string; role?: string }) => {
+    const res = await fetch(`${API_BASE}/api/auth/google/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(googleData),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Google authentication failed");
+    }
+
+    const data = await res.json();
+    setTokens({ access: data.access, refresh: data.refresh });
+    if (data.user) {
+      setUser(data.user);
+      try {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      } catch {}
+    } else {
+      await fetchProfileInternal();
+    }
+  };
+
+  const updateRole = async (newRole: "USER" | "AGENT") => {
+    const tokens = getTokens();
+    if (!tokens) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/profile/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokens.access}`,
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setUser(updated);
+        try {
+          localStorage.setItem("user", JSON.stringify(updated));
+        } catch {}
+      }
+    } catch {}
+  };
+
   const ctxValue: AuthContextType = {
     user,
     isLoading,
     isAuthenticated: !!user,
     login,
+    loginWithGoogle,
     register,
+    updateRole,
     logout,
     refreshToken: refreshTokenInternal,
   };

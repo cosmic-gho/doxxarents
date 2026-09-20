@@ -307,7 +307,11 @@ export async function fetchProperties(query: PropertyQuery = {}): Promise<FEProp
   if (query.bedrooms != null) params.set("bedrooms", String(query.bedrooms));
   if (query.bathrooms != null) params.set("bathrooms", String(query.bathrooms));
   if (query.status) params.set("status", query.status);
-  if (query.moderationStatus) params.set("moderation_status", query.moderationStatus);
+  // Default to only approved properties
+  const moderationStatus = query.moderationStatus || "APPROVED";
+  if (moderationStatus !== "ALL") {
+    params.set("moderation_status", moderationStatus);
+  }
   if (query.isVerified != null) params.set("is_verified", query.isVerified ? "true" : "false");
   if (query.search) params.set("search", query.search);
   if (query.ordering) params.set("ordering", query.ordering);
@@ -330,22 +334,37 @@ export async function fetchProperties(query: PropertyQuery = {}): Promise<FEProp
     return [];
   }
 
+  // Double-check: filter out any unapproved properties for public listings
+  const filteredRaw =
+    moderationStatus === "ALL"
+      ? raw
+      : raw.filter((bp) => !bp.moderation_status || bp.moderation_status === "APPROVED");
+
   const districtsBySlug: Record<string, FEDistrict> = {};
   for (const d of districts) districtsBySlug[d.slug] = d;
   const categoriesBySlug: Record<string, PropertyCategory> = {};
   for (const c of cats) categoriesBySlug[c.slug] = c;
 
-  return raw.map((bp) => adaptBackendProperty(bp, { districtsBySlug, categoriesBySlug }));
+  return filteredRaw.map((bp) => adaptBackendProperty(bp, { districtsBySlug, categoriesBySlug }));
 }
 
 export async function fetchPropertyById(id: number | string): Promise<FEProperty | null> {
   const data = await safeFetch<BackendProperty>(API_PATHS.property(Number(id)));
   if (!data) return null;
+  // Public users should only see approved properties
+  if (data.moderation_status && data.moderation_status !== "APPROVED") {
+    return null;
+  }
   return adaptBackendProperty(data);
 }
 
 export async function fetchRawPropertyById(id: number | string): Promise<BackendProperty | null> {
-  return await safeFetch<BackendProperty>(API_PATHS.property(Number(id)));
+  const data = await safeFetch<BackendProperty>(API_PATHS.property(Number(id)));
+  if (!data) return null;
+  if (data.moderation_status && data.moderation_status !== "APPROVED") {
+    return null;
+  }
+  return data;
 }
 
 export async function fetchAgents(): Promise<BackendAgent[]> {

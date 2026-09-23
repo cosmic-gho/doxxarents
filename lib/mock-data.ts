@@ -137,7 +137,7 @@ export const PAYMENT_PROVIDERS = [
   { id: "flutterwave", name: "Flutterwave", blurb: "Pay with card, bank transfer, or mobile money" },
 ];
 
-export const PREMIUM_PRICE = 1200;
+export const PREMIUM_PRICE = 1500;
 
 export const PREMIUM_ACCESS_DAYS = 30;
 

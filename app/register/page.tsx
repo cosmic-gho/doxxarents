@@ -24,11 +24,13 @@ function RegisterContent() {
         initialRole={initialRole}
         onBack={() => router.push("/")}
         onSuccess={(createdRole: string) => {
-          if (createdRole === "agent") {
-            router.push("/dashboard");
-          } else {
-            router.push("/");
-          }
+          setTimeout(() => {
+            if (createdRole === "agent") {
+              router.push("/dashboard");
+            } else {
+              router.push("/");
+            }
+          }, 1000);
         }}
       />
     </div>

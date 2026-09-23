@@ -28,7 +28,7 @@ export function loadPaystackScript(): Promise<boolean> {
 
 export interface PaystackPaymentOptions {
   email: string;
-  amount: number; // in Naira (e.g. 1200)
+  amount: number; // in Naira (e.g. 1500)
   propertyId: string;
   publicKey?: string;
   onSuccess: (reference: string) => void;

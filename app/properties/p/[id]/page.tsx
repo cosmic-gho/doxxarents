@@ -70,8 +70,12 @@ export default function PropertyDetailPage() {
   const [showInspectionModal, setShowInspectionModal] = useState(false);
 
   useEffect(() => {
+    if (params?.id) {
+      router.replace(`/properties/${params.id}`);
+      return;
+    }
     fetchProperty();
-  }, [params.id]);
+  }, [params?.id, router]);
 
   useEffect(() => {
     if (isAuthenticated && property) {

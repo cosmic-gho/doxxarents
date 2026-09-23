@@ -806,6 +806,124 @@ export function ThreeDTourSection({ property, isPremiumUnlocked, onUnlockPremium
   );
 }
 
+export function ContactAgentCard({ agent, property, unlocked, onUnlockPremium, onOpenAgent }) {
+  return (
+    <div id="contact-agent-box" className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 shadow-xl relative overflow-hidden">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
+        <div>
+          <p className="text-neutral-100 font-medium text-base" style={{ fontFamily: "Georgia, serif" }}>Contact Agent</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px] text-emerald-400 font-medium">Verified Agent</span>
+            <span className="text-neutral-600 text-xs">&middot;</span>
+            <span className="text-[11px] text-neutral-400">{agent?.responseTime || "Typically replies in 15 mins"}</span>
+          </div>
+        </div>
+        {agent?.verified && <PremiumBadge type="verifiedAgent" />}
+      </div>
+
+      <div className="flex items-center gap-3.5 mb-4">
+        <AgentAvatar agent={agent} size={52} />
+        <div className="min-w-0 flex-1">
+          <p className="text-neutral-100 text-sm font-semibold truncate">{agent?.name || "Verified Listing Agent"}</p>
+          <p className="text-neutral-400 text-xs truncate">{agent?.agency || "DOXXA Verified Partner"}</p>
+          {agent?.rating && (
+            <p className="text-amber-400 text-xs mt-0.5 flex items-center gap-1">
+              <span>★ {agent.rating}</span>
+              {agent.reviewCount && <span className="text-neutral-500">({agent.reviewCount} reviews)</span>}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {unlocked ? (
+        <div className="space-y-2.5">
+          <div className="bg-emerald-950/40 border border-emerald-800/60 rounded-lg p-2.5 text-center text-xs text-emerald-300 font-medium flex items-center justify-center gap-1.5 mb-2">
+            <span>✓</span> Direct contacts unlocked
+          </div>
+          {agent?.phone && (
+            <a
+              href={`tel:${agent.phone}`}
+              className="flex items-center justify-center gap-2 w-full bg-amber-400 hover:bg-amber-300 text-neutral-950 font-medium rounded-lg py-2.5 text-xs transition shadow-sm"
+            >
+              <span>📞</span> Call {agent.phone}
+            </a>
+          )}
+          {agent?.whatsapp && (
+            <a
+              href={`https://wa.me/${agent.whatsapp.replace(/[^0-9]/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg py-2.5 text-xs transition shadow-sm"
+            >
+              <span>💬</span> Chat on WhatsApp
+            </a>
+          )}
+          {agent?.email && (
+            <a
+              href={`mailto:${agent.email}`}
+              className="flex items-center justify-center gap-2 w-full border border-neutral-700 hover:border-neutral-600 text-neutral-300 rounded-lg py-2 text-xs transition"
+            >
+              <span>✉️</span> {agent.email}
+            </a>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3.5">
+          <div className="bg-neutral-950/70 border border-neutral-800/80 rounded-lg p-3 text-xs space-y-2">
+            <div className="flex items-center justify-between text-neutral-400">
+              <span className="flex items-center gap-1.5"><span>📞</span> Phone Number</span>
+              <span className="font-mono text-neutral-500 text-[11px] bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">🔒 +234 ••• ••• ••••</span>
+            </div>
+            <div className="flex items-center justify-between text-neutral-400">
+              <span className="flex items-center gap-1.5"><span>💬</span> WhatsApp Direct</span>
+              <span className="font-mono text-neutral-500 text-[11px] bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">🔒 Direct link locked</span>
+            </div>
+            <div className="flex items-center justify-between text-neutral-400">
+              <span className="flex items-center gap-1.5"><span>📍</span> Exact Address</span>
+              <span className="font-mono text-neutral-500 text-[11px] bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">🔒 Unlocks with contact</span>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-amber-950/40 via-amber-900/20 to-neutral-900 border border-amber-800/50 rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <p className="text-neutral-200 text-xs font-semibold">Contact Unlock Fee</p>
+              <p className="text-[11px] text-neutral-400">One-time payment &middot; 30 days access</p>
+            </div>
+            <p className="text-amber-400 text-lg font-bold" style={{ fontFamily: "Georgia, serif" }}>
+              {formatNaira(PREMIUM_PRICE)}
+            </p>
+          </div>
+
+          <button
+            onClick={onUnlockPremium}
+            className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-neutral-950 bg-amber-400 hover:bg-amber-300 active:scale-[0.99] rounded-lg px-4 py-3 transition shadow-lg shadow-amber-400/10 cursor-pointer"
+          >
+            <span>📞</span>
+            <span>Contact Agent — Pay {formatNaira(PREMIUM_PRICE)}</span>
+            <span>&rarr;</span>
+          </button>
+
+          <p className="text-[11px] text-neutral-500 text-center leading-tight">
+            Instant Paystack checkout (Cards, Transfer, USSD). Direct agent connection with zero fake-agent markups.
+          </p>
+        </div>
+      )}
+
+      {agent?.id && (
+        <div className="pt-3 mt-3 border-t border-neutral-800/80 text-center">
+          <button
+            onClick={() => onOpenAgent && onOpenAgent(agent.id)}
+            className="text-xs text-amber-400 hover:text-amber-300 hover:underline transition"
+          >
+            View agent profile &amp; listings &rarr;
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function PremiumUnlockPanel({ property, onUnlockPremium }) {
   return (
     <div className="bg-gradient-to-br from-amber-950/40 to-neutral-900 border border-amber-800/50 rounded-xl p-5">
@@ -925,7 +1043,7 @@ export function PropertyDetail({ propertyId, propertyData, similarProperties, on
                 <p className="text-neutral-600 text-xs">per year</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center gap-3 mb-5 flex-wrap">
               <button onClick={() => toggleSave && toggleSave(property.id)} className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border ${isSaved ? "border-rose-800 text-rose-300 bg-rose-950" : "border-neutral-800 text-neutral-400"}`}>
                 <IconHeart filled={isSaved} /> {isSaved ? "Saved" : "Save"}
               </button>
@@ -944,6 +1062,15 @@ export function PropertyDetail({ propertyId, propertyData, similarProperties, on
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-400 hover:text-neutral-200"
               >
                 <IconShare /> Share
+              </button>
+              <button
+                onClick={unlocked ? () => {
+                  const el = document.getElementById("contact-agent-box");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                } : onUnlockPremium}
+                className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-950 bg-amber-400 hover:bg-amber-300 px-3.5 py-1.5 rounded-lg transition shadow-sm cursor-pointer"
+              >
+                <span>📞</span> {unlocked ? "Contact Agent" : `Contact Agent (${formatNaira(PREMIUM_PRICE)})`}
               </button>
             </div>
             <div className="flex flex-wrap gap-2 mb-5">
@@ -1058,42 +1185,19 @@ export function PropertyDetail({ propertyId, propertyData, similarProperties, on
         </div>
 
         <div className="flex flex-col gap-4">
+          <ContactAgentCard
+            agent={agent}
+            property={property}
+            unlocked={unlocked}
+            onUnlockPremium={onUnlockPremium}
+            onOpenAgent={onOpenAgent}
+          />
+
           <MoveInCalculator property={property} />
 
           {!unlocked && <PremiumUnlockPanel property={property} onUnlockPremium={onUnlockPremium} />}
 
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <AgentAvatar agent={agent} size={56} />
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-neutral-100 text-sm font-medium truncate">{agent.name || "Agent"}</p>
-                  {agent.verified && <PremiumBadge type="verifiedAgent" />}
-                </div>
-                <p className="text-neutral-500 text-xs truncate">{agent.agency || "DOXXA Verified Partner"}</p>
-              </div>
-            </div>
-            {unlocked ? (
-              <div className="flex flex-col gap-2 text-sm">
-                {agent.phone && (
-                  <a href={`tel:${agent.phone}`} className="text-center bg-amber-400 hover:bg-amber-300 text-neutral-900 rounded-lg py-2 text-xs font-medium">Call {agent.phone}</a>
-                )}
-                {agent.whatsapp && (
-                  <a href={`https://wa.me/${agent.whatsapp.replace(/[^0-9]/g, "")}`} className="text-center bg-emerald-700 hover:bg-emerald-600 text-neutral-50 rounded-lg py-2 text-xs font-medium">WhatsApp agent</a>
-                )}
-                {agent.email && (
-                  <a href={`mailto:${agent.email}`} className="text-center border border-neutral-700 text-neutral-300 rounded-lg py-2 text-xs">{agent.email}</a>
-                )}
-              </div>
-            ) : (
-              <button onClick={onUnlockPremium} className="w-full text-center border border-dashed border-neutral-700 text-neutral-500 rounded-lg py-3 text-xs">
-                &#128274; Phone, WhatsApp &amp; email hidden until unlocked
-              </button>
-            )}
-            {agent.id && (
-              <button onClick={() => onOpenAgent && onOpenAgent(agent.id)} className="text-xs text-amber-400 hover:underline mt-3">View agent profile &rarr;</button>
-            )}
-          </div>
+
 
           <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
             <p className="text-neutral-100 text-sm font-medium mb-2" style={{ fontFamily: "Georgia, serif" }}>Book an inspection</p>
@@ -1124,6 +1228,25 @@ export function PropertyDetail({ propertyId, propertyData, similarProperties, on
             )}
           </div>
         </div>
+      </div>
+
+      {/* Mobile Sticky Contact Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/95 backdrop-blur-md border-t border-neutral-800 px-4 py-3 flex items-center justify-between gap-3 shadow-2xl">
+        <div>
+          <p className="text-[11px] text-neutral-400">Agent Contact</p>
+          <p className="text-amber-400 text-sm font-bold" style={{ fontFamily: "Georgia, serif" }}>
+            {unlocked ? "Unlocked" : formatNaira(PREMIUM_PRICE)}
+          </p>
+        </div>
+        <button
+          onClick={unlocked ? () => {
+            const el = document.getElementById("contact-agent-box");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          } : onUnlockPremium}
+          className="flex-1 max-w-xs text-xs font-semibold text-neutral-950 bg-amber-400 hover:bg-amber-300 py-2.5 px-4 rounded-lg flex items-center justify-center gap-1.5 shadow-md shadow-amber-400/10 cursor-pointer"
+        >
+          <span>📞</span> {unlocked ? "Call / WhatsApp Agent" : `Contact Agent — ${formatNaira(PREMIUM_PRICE)}`}
+        </button>
       </div>
     </div>
   );
@@ -1525,6 +1648,7 @@ export function SignupView({ initialRole, onBack, onSuccess }) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const { register, loginWithGoogle } = useAuth();
 

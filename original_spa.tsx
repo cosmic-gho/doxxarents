@@ -116,7 +116,7 @@ const PAYMENT_PROVIDERS = [
   { id: "flutterwave", name: "Flutterwave", blurb: "Pay with card, bank transfer, or mobile money" },
 ];
 
-const PREMIUM_PRICE = 1200;
+const PREMIUM_PRICE = 1500;
 const PREMIUM_ACCESS_DAYS = 30;
 
 const AGENT_LIST = [
